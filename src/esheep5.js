@@ -768,23 +768,24 @@ class eSheep {
                 e.preventDefault();
                 e.stopPropagation();
 
-                var div = document.createElement("div");
-                div.setAttribute("style", "position:absolute;left:0px;top:20px;width:183px;min-height:100px;background:linear-gradient(to bottom, #8080ff, #3030a1);color:yellow;");
-                element.parentNode.appendChild(div);
+                const div = document.createElement("div");
+                div.style.cssText = ["position:absolute;", "left:0px;", "top:20px;", "width:183px;",
+                    "min-height:100px;", "background:linear-gradient(to bottom, #8080ff, #3030a1);", /*"color:yellow;"*/].join(" ");
+                const item = document.createElement("b");
+                item.style.cssText = "cursor:pointer; display:block;";
 
                 for (let k in pets) {
-                    var pet = document.createElement("b");
-                    pet.setAttribute("style", "cursor:pointer;display:block;");
-                    pet.appendChild(document.createTextNode(pets[k].folder));
-                    pet.addEventListener("click", ()=>{
-                      var x = new eSheep(this.userOptions);
-                      x.Start("https://adrianotiger.github.io/desktopPet/Pets/" + pets[k].folder + "/animations.xml");
-                      this.remove();
+                    const pet = item.cloneNode();
+                    pet.textContent = pets[k].folder;
+                    pet.addEventListener("click", () => {
+                        (new eSheep(this.userOptions)).Start(`https://adrianotiger.github.io/desktopPet/Pets/${pets[k].folder}/animations.xml`);
+                        this.remove();
                     });
-                    div.appendChild(pet);
+                    div.append(pet);
                 }
 
-                div.addEventListener("click", e => {element.parentNode.removeChild(div);});
+                element.parentElement.append(div);
+                div.addEventListener("click", e => {element.parentElement.remove(div);});
             });
         }        );
     }
