@@ -28,6 +28,13 @@ function evaluate(value, sheep) {
     }
 }
 
+async function fetchPets() {
+    const resp = await fetch("https://adrianotiger.github.io/desktopPet/Pets/pets.json", {credentials: 'same-origin', cache: "force-cache"});
+    const json = await resp.json();
+    ACTIVATE_DEBUG && console.log(json);
+    return json.pets;
+}
+
 /*
  * eSheep class.
  * Create a new class of this type if you want a new pet. Will create the components for the pet.
@@ -752,47 +759,35 @@ class eSheep {
     );
   }
 
-  /*
-   * Load Pet List from GitHub, so user can change it
-   */
-  _loadPetList(element)
-  {
-    fetch("https://adrianotiger.github.io/desktopPet/Pets/pets.json",
-    {
-      credentials: 'same-origin',
-      cache: "force-cache"
-    }).then(response => {
-      return response.json();
-    }).then(json => {
-      console.log(json);
-      if(json.pets)
-      {
-        element.addEventListener("mouseup", e => {
-          e.preventDefault();
-          e.stopPropagation();
+    /*
+     * Load Pet List from GitHub, so user can change it
+     */
+    _loadPetList(element) {
+        fetchPets().then(pets => {
+            element.addEventListener("mouseup", e => {
+                e.preventDefault();
+                e.stopPropagation();
 
-          var div = document.createElement("div");
-          div.setAttribute("style", "position:absolute;left:0px;top:20px;width:183px;min-height:100px;background:linear-gradient(to bottom, #8080ff, #3030a1);color:yellow;");
-          element.parentNode.appendChild(div);
+                var div = document.createElement("div");
+                div.setAttribute("style", "position:absolute;left:0px;top:20px;width:183px;min-height:100px;background:linear-gradient(to bottom, #8080ff, #3030a1);color:yellow;");
+                element.parentNode.appendChild(div);
 
-          for(let k in json.pets)
-          {
-            var pet = document.createElement("b");
-            pet.setAttribute("style", "cursor:pointer;display:block;");
-            pet.appendChild(document.createTextNode(json.pets[k].folder));
-            pet.addEventListener("click", ()=>{
-              var x = new eSheep(this.userOptions);
-              x.Start("https://adrianotiger.github.io/desktopPet/Pets/" + json.pets[k].folder + "/animations.xml");
-              this.remove();
+                for (let k in pets) {
+                    var pet = document.createElement("b");
+                    pet.setAttribute("style", "cursor:pointer;display:block;");
+                    pet.appendChild(document.createTextNode(pets[k].folder));
+                    pet.addEventListener("click", ()=>{
+                      var x = new eSheep(this.userOptions);
+                      x.Start("https://adrianotiger.github.io/desktopPet/Pets/" + pets[k].folder + "/animations.xml");
+                      this.remove();
+                    });
+                    div.appendChild(pet);
+                }
+
+                div.addEventListener("click", e => {element.parentNode.removeChild(div);});
             });
-            div.appendChild(pet);
-          }
-
-          div.addEventListener("click", e => {element.parentNode.removeChild(div);});
-        });
-      }
-    });
-  }
+        }        );
+    }
 };
 
 export default eSheep;
