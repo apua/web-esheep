@@ -3,63 +3,80 @@ const ACTIVATE_DEBUG = true;         // show log on console
 const DEFAULT_XML = "https://adrianotiger.github.io/desktopPet/Pets/esheep64/animations.xml"; // default XML animation
 const COLLISION_WITH = ["div", "hr"]; // elements on page to detect for collisions
 
-  /*
-   * eSheep class.
-   * Create a new class of this type if you want a new pet. Will create the components for the pet.
-   * Once created, you can call [variableName].Start() to start the animation with your desired pet.
-   */
-class eSheep
-{  
+/*
+ * Parse the human readable expression from XML to a computer readable expression
+ */
+function evaluate(value, sheep) {
+    value = value
+        .replace(/screenW/g, sheep.screenW)
+        .replace(/screenH/g, sheep.screenH)
+        .replace(/areaW/g, sheep.screenH)
+        .replace(/areaH/g, sheep.screenH)
+        .replace(/imageW/g, sheep.imageW)
+        .replace(/imageH/g, sheep.imageH)
+        .replace(/random/g, Math.random()*100)
+        .replace(/randS/g, sheep.randS)
+        .replace(/imageX/g, sheep.imageX)
+        .replace(/imageY/g, sheep.imageY)
+    ;
+
+    try {
+        return eval(value);
+    } catch(err) {
+        console.error("Unable to parse this position: \n'" + value + "'\n Error message: \n" + err.message);
+        return 0;
+    }
+}
+
+/*
+ * eSheep class.
+ * Create a new class of this type if you want a new pet. Will create the components for the pet.
+ * Once created, you can call [variableName].Start() to start the animation with your desired pet.
+ */
+class eSheep {
+    _parseKeyWords = (value) => evaluate(value, this);
+
     /* Parameters for options [default]:
      * - allowPets: [none], all
      * - allowPopup: [yes], no
      */
-  constructor(options, isChild)
-  {
-    this.userOptions = options ? options : {allowPets : "none", allowPopup : "yes"};
-    if(!this.userOptions.allowPopup) this.userOptions.allowPopup = "yes";
-    if(!this.userOptions.allowPets) this.userOptions.allowPets = "none";
-        
-      // CORS: Cross calls are not accepted by new browsers.
-    this.animationFile = DEFAULT_XML;
+    constructor({allowPets = "none", allowPopup = "yes"} = {allowPets: "none", allowPopup: "yes"}, isChild = false) {
+        this.userOptions = {allowPets: allowPets, allowPopup: allowPopup};
 
-    this.id = Date.now() + Math.random();
+        this.isChild = isChild;               // Child will be removed once they reached the end
 
-    this.DOMdiv = document.createElement("div");    // Div added to webpage, containing the sheep
-    this.DOMdiv.setAttribute("id", this.id);
-    this.DOMimg = document.createElement("img");    // Tile image, will be positioned inside the div
-    this.DOMinfo = document.createElement("div");   // about dialog, if you press on the sheep
+        // CORS: Cross calls are not accepted by new browsers.
+        this.animationFile = DEFAULT_XML;
 
-    this.parser = new DOMParser();                  // XML parser
-    this.xmlDoc = null;                             // parsed XML Document
-    this.prepareToDie = false;                      // when removed, animations should be stopped
+        this.id = Date.now() + Math.random();
 
-    this.isChild = (isChild != null);               // Child will be removed once they reached the end
+        this.DOMdiv = document.createElement("div");    // Div added to webpage, containing the sheep
+        this.DOMdiv.setAttribute("id", this.id);
+        this.DOMimg = document.createElement("img");    // Tile image, will be positioned inside the div
+        this.DOMinfo = document.createElement("div");   // about dialog, if you press on the sheep
 
-    this.tilesX = 1;                                // Quantity of images inside Tile
-    this.tilesY = 1;                                // Quantity of images inside Tile
-    this.imageW = 1;                                // Width of the sprite image
-    this.imageH = 1;                                // Height of the sprite image
-    this.imageX = 1;                                // Position of sprite inside webpage
-    this.imageY = 1;                                // Position of sprite inside webpage
-    this.flipped = false;                           // if sprite is flipped
-    this.dragging = false;                          // if user is dragging the sheep
-    this.infobox = false;                           // if infobox is visible
-    this.animationId = 0;                           // current animation ID
-    this.animationStep = 0;                         // current animation step
-    this.animationNode = null;                      // current animation DOM node
-    this.sprite = new Image();                      // sprite image (Tiles)
-    this.HTMLelement = null;                        // the HTML element where the pet is walking on
-    this.randS = Math.random() * 100;               // random value, will change when page is reloaded
+        this.parser = new DOMParser();                  // XML parser
+        this.prepareToDie = false;                      // when removed, animations should be stopped
 
-    this.screenW = window.innerWidth
-                  || document.documentElement.clientWidth
-                  || document.body.clientWidth;     // window width
+        this.tilesX = 1;                                // Quantity of images inside Tile
+        this.tilesY = 1;                                // Quantity of images inside Tile
+        this.imageW = 1;                                // Width of the sprite image
+        this.imageH = 1;                                // Height of the sprite image
+        this.imageX = 1;                                // Position of sprite inside webpage
+        this.imageY = 1;                                // Position of sprite inside webpage
+        this.flipped = false;                           // if sprite is flipped
+        this.dragging = false;                          // if user is dragging the sheep
+        this.infobox = false;                           // if infobox is visible
+        this.animationId = 0;                           // current animation ID
+        this.animationStep = 0;                         // current animation step
+        this.animationNode = null;                      // current animation DOM node
+        this.sprite = new Image();                      // sprite image (Tiles)
+        this.HTMLelement = null;                        // the HTML element where the pet is walking on
+        this.randS = Math.random() * 100;               // random value, will change when page is reloaded
 
-    this.screenH = window.innerHeight
-                  || document.documentElement.clientHeight
-                  || document.body.clientHeight;    // window height
-  }
+        this.screenW = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;     // window width
+        this.screenH = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;    // window height
+    }
 
     /*
      * Start new animation on the page.
@@ -93,9 +110,9 @@ class eSheep
   remove() {
     this.prepareToDie = true;
     this.DOMinfo.Hide();
-    setTimeout(()=>{
+    setTimeout(() => {
       this.DOMdiv = this.DOMimg = this.DOMinfo = null;
-      document.getElementById(this.id).outerHTML='';
+      document.getElementById(this.id).outerHTML = '';
     }, 500);
   }
 
@@ -104,7 +121,7 @@ class eSheep
      */
   _parseXML(text)
   {
-    this.xmlDoc = this.parser.parseFromString(text,'text/xml');
+    this.xmlDoc = this.parser.parseFromString(text,'text/xml');  // parsed XML Document
     var image = this.xmlDoc.getElementsByTagName('image')[0];
     this.tilesX = image.getElementsByTagName("tilesx")[0].textContent;
     this.tilesY = image.getElementsByTagName("tilesy")[0].textContent;
@@ -150,7 +167,7 @@ class eSheep
     this.DOMimg.setAttribute("src", this.sprite.src);
 
     // Mouse move over eSheep, check if eSheep should be moved over the screen
-    this.DOMdiv.addEventListener("mousemove", e => 
+    this.DOMdiv.addEventListener("mousemove", e =>
     {
       if(!this.dragging && e.buttons==1 && e.button==0)
       {
@@ -171,7 +188,7 @@ class eSheep
       }
     });
     // Add event listener to body, if mouse moved too fast over the dragging eSheep
-    document.body.addEventListener("mousemove", e => 
+    document.body.addEventListener("mousemove", e =>
     {
       if(this.dragging)
       {
@@ -185,7 +202,7 @@ class eSheep
       }
     });
     // Window resized, recalculate eSheep bounds
-    document.body.addEventListener("resize", () => 
+    document.body.addEventListener("resize", () =>
     {
       this.screenW = window.innerWidth
                 || document.documentElement.clientWidth
@@ -293,7 +310,7 @@ class eSheep
       // Add about and sheep elements to the body
     document.body.appendChild(this.DOMinfo);
     document.body.appendChild(this.DOMdiv);
-        
+
     this.DOMinfo.Show = () => {
       this.DOMinfo.style.display = "block";
       this.DOMinfo.style.transform = "translate(-50%, -100%) scale(1.0)";
@@ -406,32 +423,6 @@ class eSheep
     this._nextESheepStep();
   }
 
-    // Parse the human readable expression from XML to a computer readable expression
-  _parseKeyWords(value)
-  {
-    value = value.replace(/screenW/g, this.screenW);
-    value = value.replace(/screenH/g, this.screenH);
-    value = value.replace(/areaW/g, this.screenH);
-    value = value.replace(/areaH/g, this.screenH);
-    value = value.replace(/imageW/g, this.imageW);
-    value = value.replace(/imageH/g, this.imageH);
-    value = value.replace(/random/g, Math.random()*100);
-    value = value.replace(/randS/g, this.randS);
-    value = value.replace(/imageX/g, this.imageX);
-    value = value.replace(/imageY/g, this.imageY);
-
-    var ret = 0;
-    try
-    {
-      ret = eval(value);
-    }
-    catch(err)
-    {
-      console.error("Unable to parse this position: \n'" + value + "'\n Error message: \n" + err.message);
-    }
-    return ret;
-  }
-
     /*
      * Once the animation is over, get the next animation to play
      */
@@ -500,7 +491,7 @@ class eSheep
         if(childs[k].getAttribute("animationid") == this.animationId)
         {
           if(ACTIVATE_DEBUG) console.log("Child from Animation");
-          var eSheepChild = new eSheep(null, true);
+          var eSheepChild = new eSheep({}, true);
           eSheepChild.animationId = childs[k].getElementsByTagName('next')[0].textContent;
           var x = childs[k].getElementsByTagName('x')[0].textContent;//
           var y = childs[k].getElementsByTagName('y')[0].textContent;
@@ -572,7 +563,7 @@ class eSheep
   _nextESheepStep()
   {
     if(this.prepareToDie) return;
-    
+
     var x1 = this._getNodeValue('start','x',0);
     var y1 = this._getNodeValue('start','y',0);
     var off1 = this._getNodeValue('start','offsety',0);
@@ -760,7 +751,7 @@ class eSheep
       parseInt(del1) + parseInt((del2 - del1) * this.animationStep / steps)
     );
   }
-  
+
   /*
    * Load Pet List from GitHub, so user can change it
    */
@@ -779,11 +770,11 @@ class eSheep
         element.addEventListener("mouseup", e => {
           e.preventDefault();
           e.stopPropagation();
-          
+
           var div = document.createElement("div");
           div.setAttribute("style", "position:absolute;left:0px;top:20px;width:183px;min-height:100px;background:linear-gradient(to bottom, #8080ff, #3030a1);color:yellow;");
           element.parentNode.appendChild(div);
-          
+
           for(let k in json.pets)
           {
             var pet = document.createElement("b");
@@ -796,7 +787,7 @@ class eSheep
             });
             div.appendChild(pet);
           }
-          
+
           div.addEventListener("click", e => {element.parentNode.removeChild(div);});
         });
       }
