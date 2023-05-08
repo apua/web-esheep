@@ -52,9 +52,6 @@ class eSheep {
 
         this.isChild = isChild;               // Child will be removed once they reached the end
 
-        // CORS: Cross calls are not accepted by new browsers.
-        this.animationFile = DEFAULT_XML;
-
         this.id = Date.now() + Math.random();
 
         this.DOMdiv = document.createElement("div");    // Div added to webpage, containing the sheep
@@ -89,30 +86,21 @@ class eSheep {
      * Start new animation on the page.
      * if animation is not set, the default sheep will be taken
      */
-  Start(animation)
-  {
-    if(typeof animation !== 'undefined' &&
-      animation != null)
-    {
-      this.animationFile = animation;
+    start(animation = DEFAULT_XML) {
+        this.animationFile = animation;
+
+        fetch(this.animationFile).then(resp => {
+            resp.text().then((payload) => {
+                if (resp.ok)
+                    this._parseXML(payload);
+                else
+                    console.error(`XML not available: ${resp.statusText}\n${payload}`);
+            });
+        });
     }
 
-    var ajax = new XMLHttpRequest();
-    var sheepClass = this;
-
-    ajax.open("GET", this.animationFile, true);
-    ajax.addEventListener("readystatechange", function() {
-      if(this.readyState == 4)
-      {
-        if(this.status == 200)
-            // successfully loaded XML, parse it and create first esheep.
-          sheepClass._parseXML(this.responseText);
-        else
-          console.error("XML not available:" + this.statusText + "\n" + this.responseText);
-      }
-    });
-    ajax.send(null);
-  }
+    // backward compatible
+    Start = this.start;
 
   remove() {
     this.prepareToDie = true;
