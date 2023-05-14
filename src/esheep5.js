@@ -788,7 +788,11 @@ class eSheep {
                     const pet = item.cloneNode();
                     pet.textContent = pets[k].folder;
                     pet.addEventListener("click", () => {
-                        (new eSheep(this.userOptions)).Start(`https://adrianotiger.github.io/desktopPet/Pets/${pets[k].folder}/animations.xml`);
+                        const options = {
+                            allowPets: this.userOptions.allowPets || "none",
+                            allowPopup: this.userOptions.allowPopup && "yes",
+                        };
+                        (new eSheep(options)).Start(`https://adrianotiger.github.io/desktopPet/Pets/${pets[k].folder}/animations.xml`);
                         this.remove();
                     });
                     div.append(pet);
