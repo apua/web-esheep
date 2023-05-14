@@ -779,7 +779,8 @@ class eSheep {
 
                 const div = document.createElement("div");
                 div.style.cssText = ["position:absolute;", "left:0px;", "top:20px;", "width:183px;",
-                    "min-height:100px;", "background:linear-gradient(to bottom, #8080ff, #3030a1);", /*"color:yellow;"*/].join(" ");
+                    "min-height:100px;", "background:linear-gradient(to bottom, #8080ff, #3030a1);",
+                    "color:yellow;"].join(" ");
                 const item = document.createElement("b");
                 item.style.cssText = "cursor:pointer; display:block;";
 
@@ -794,9 +795,9 @@ class eSheep {
                 }
 
                 element.parentElement.append(div);
-                div.addEventListener("click", e => {element.parentElement.remove(div);});
+                div.addEventListener("click", (event) => {element.parentElement.remove(div);});
             });
-        }        );
+        });
     }
 };
 
