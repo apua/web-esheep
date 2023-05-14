@@ -7,7 +7,12 @@ html { color-scheme: dark; }
 </style>
 
 <script type="module">
+import eSheep from "./esheep.js";
+(new eSheep({allowPets: "all"})).Start('https://adrianotiger.github.io/desktopPet/Pets/blue_sheep/animations.xml');
+</script>
+
+<script type="module">
 import eSheep from "./esheep5.js";
-(new eSheep()).start();
-(new eSheep({allowPets: "all"})).start();
+(new eSheep()).Start();
+(new eSheep({allowPets: "all"})).Start('https://adrianotiger.github.io/desktopPet/Pets/yellow_sheep/animations.xml');
 </script>
