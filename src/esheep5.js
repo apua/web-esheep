@@ -69,6 +69,7 @@ class eSheep {
      * - allowPets: [none], all
      * - allowPopup: [yes], no
      */
+    // Usage: `new eSheep()`, `new eSheep(options}`, `new eSheep({}, true}`
     constructor(
         {allowPets = "none", allowPopup = "yes"} = {allowPets: "none", allowPopup: "yes"},
         isChild = false
@@ -400,7 +401,7 @@ class eSheep {
               if(childs[j].getAttribute("animationid") == this.animationId)
               {
                 if(ACTIVATE_DEBUG) console.log("Child from Spawn");
-                var eSheepChild = new eSheep(null, true);
+                var eSheepChild = new eSheep({}, true);
                 eSheepChild.animationId = childs[j].getElementsByTagName('next')[0].textContent;
                 var x = childs[j].getElementsByTagName('x')[0].textContent;//
                 var y = childs[j].getElementsByTagName('y')[0].textContent;
