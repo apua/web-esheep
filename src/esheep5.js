@@ -133,7 +133,7 @@ class eSheep {
     /*
      * Parse loaded XML, contains spawn, animations and childs
      */
-  _parseXML(text) {
+    _parseXML(text) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'text/xml');
         this.xmlDoc = doc;
@@ -287,10 +287,9 @@ class eSheep {
         this.DOMinfo.style = ''
             + 'width:400px;'
             + 'height:100px;'
-            + 'transform:translate(-50%, -50%) scale(0.1);'
+            + 'transform:translate(-50%, -50%) scale(0);'
             + 'position:fixed;'
             + 'top:100px;left:10px;'
-            + 'display:none;'
             + 'border-width:2px;'
             + 'border-radius:5px;'
             + 'border-style:ridge;'
@@ -313,49 +312,26 @@ class eSheep {
             version = headerNode.getElementsByTagName('version')[0].textContent ,
             info = headerNode.getElementsByTagName('info')[0].textContent ;
 
-        const htmlV = document.createElement('sup');
-        htmlV.innerHTML = `App v.${VERSION}<br>Pet v.${version}`;
-        htmlV.style = 'float:right;text-align:right;';
+        this.DOMinfo.innerHTML = `
+            <sup style="float:right;text-align:right;">App v.${VERSION}<br>Pet v.${version}</sup>
+            <a href="https://github.com/Adrianotiger/web-esheep" target="_blank" style="float:left;">🏠</a>
+            ${this.userOptions.allowPets ? '<a class="pets" href="javascript:;" style="float:left;">⚙</a>' : ''}
+            <b>${title}</b><br><hr>
+            <p style="font-size:${100 - parseInt(info.length / 10)}%;">${info}</p>
+            `;
 
-        const htmlL = document.createElement('a'); //???
-        htmlL.append('🏠');
-        htmlL.href = 'https://github.com/Adrianotiger/web-esheep';
-        htmlL.target = '_blank';
-        htmlL.style = 'float:left';
-
-        this.DOMinfo.append(htmlV, htmlL);
-
-        if (this.userOptions.allowPets) {
-            const htmlLL = document.createElement('a');
-            htmlLL.append('⚙');
-            htmlLL.href = 'javascript:;';
-            htmlLL.style = 'float:left';
-            this.DOMinfo.append(htmlLL);
-            // Apua: ??
-            setTimeout(() => {this._loadPetList(htmlLL);}, 100);
-        }
-
-        const htmlT = document.createElement('b');
-        htmlT.append(title);
-
-        const htmlP = document.createElement('p');
-        htmlP.append(info);
-        htmlP.style = `font-size:${100 - parseInt(info.length / 10)}%;`;
-
-        this.DOMinfo.append(htmlT, document.createElement('br'), document.createElement('hr'), htmlP);
+        this.DOMinfo.querySelectorAll('.pets').forEach((pets) => {
+            setTimeout(() => {this._loadPetList(pets);}, 100);
+        });
 
         // Add about and sheep elements to the body
         document.body.append(this.DOMinfo, this.DOMdiv);
 
-    this.DOMinfo.Show = () => {
-      this.DOMinfo.style.display = "block";
-      this.DOMinfo.style.transform = "translate(-50%, -100%) scale(1.0)";
-    }
-    this.DOMinfo.Hide = () => {
-      this.DOMinfo.style.transform = "translate(-50%, -50%) scale(0.1)";
-      setTimeout(()=>{this.DOMinfo.style.display = "none";}, 300);
-    }
-  };
+        // Apua: animation of show/hide, not need to hide it.
+        // TODO: `DOMinfo` is petinfo and could be encapsulate to custom element?
+        this.DOMinfo.Show = () => { this.DOMinfo.style.transform = "translate(-50%, -100%) scale(1.0)"; };
+        this.DOMinfo.Hide = () => { this.DOMinfo.style.transform = "translate(-50%, -50%) scale(0)"; };
+    };
 
     /*
      * Set new position for the pet
