@@ -69,7 +69,10 @@ class eSheep {
      * - allowPets: [none], all
      * - allowPopup: [yes], no
      */
-    constructor({allowPets = "none", allowPopup = "yes"} = {allowPets: "none", allowPopup: "yes"}, isChild = false) {
+    constructor(
+        {allowPets = "none", allowPopup = "yes"} = {allowPets: "none", allowPopup: "yes"},
+        isChild = false
+        ) {
         this.userOptions = {allowPets: allowPets != "none", allowPopup: allowPopup == "yes"};
 
         this.isChild = isChild;               // Child will be removed once they reached the end
@@ -285,7 +288,7 @@ class eSheep {
 
         // Create About box
         this.DOMinfo.style = ''
-            + 'width:400px;'
+            + 'width:200px;'
             + 'height:100px;'
             + 'transform:translate(-50%, -50%) scale(0);'
             + 'position:fixed;'
