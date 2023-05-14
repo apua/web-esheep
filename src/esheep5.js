@@ -35,6 +35,28 @@ async function fetchPets() {
     return json.pets;
 }
 
+function getScreen() {
+    if (ACTIVATE_DEBUG) {
+        console.assert(window.innerWidth == document.documentElement.clientWidth, `
+            window.innerWidth: ${window.innerWidth}
+            document.documentElement.clientWidth: ${document.documentElement.clientWidth}`,
+        );
+        console.assert(window.innerWidth == document.body.clientWidth, `
+            window.innerWidth: ${window.innerWidth}
+            document.body.clientWidth: ${document.body.clientWidth}`,
+        );
+        console.assert(window.innerHeight == document.body.clientHeight, `
+            window.innerHeight: ${window.innerHeight}
+            document.body.clientHeight: ${document.body.clientHeight}`,
+        );
+        console.assert(window.innerHeight == document.body.clientHeight, `
+            window.innerHeight: ${window.innerHeight}
+            document.body.clientHeight: ${document.body.clientHeight}`,
+        );
+    }
+    return [window.innerWidth, window.innerHeight];
+}
+
 /*
  * eSheep class.
  * Create a new class of this type if you want a new pet. Will create the components for the pet.
@@ -48,7 +70,7 @@ class eSheep {
      * - allowPopup: [yes], no
      */
     constructor({allowPets = "none", allowPopup = "yes"} = {allowPets: "none", allowPopup: "yes"}, isChild = false) {
-        this.userOptions = {allowPets: allowPets, allowPopup: allowPopup};
+        this.userOptions = {allowPets: allowPets != "none", allowPopup: allowPopup == "yes"};
 
         this.isChild = isChild;               // Child will be removed once they reached the end
 
@@ -59,7 +81,6 @@ class eSheep {
         this.DOMimg = document.createElement("img");    // Tile image, will be positioned inside the div
         this.DOMinfo = document.createElement("div");   // about dialog, if you press on the sheep
 
-        this.parser = new DOMParser();                  // XML parser
         this.prepareToDie = false;                      // when removed, animations should be stopped
 
         this.tilesX = 1;                                // Quantity of images inside Tile
@@ -74,12 +95,10 @@ class eSheep {
         this.animationId = 0;                           // current animation ID
         this.animationStep = 0;                         // current animation step
         this.animationNode = null;                      // current animation DOM node
-        this.sprite = new Image();                      // sprite image (Tiles)
         this.HTMLelement = null;                        // the HTML element where the pet is walking on
         this.randS = Math.random() * 100;               // random value, will change when page is reloaded
 
-        this.screenW = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;     // window width
-        this.screenH = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;    // window height
+        [this.screenW, this.screenH] = getScreen();
     }
 
     /*
@@ -114,52 +133,68 @@ class eSheep {
     /*
      * Parse loaded XML, contains spawn, animations and childs
      */
-  _parseXML(text)
-  {
-    this.xmlDoc = this.parser.parseFromString(text,'text/xml');  // parsed XML Document
-    var image = this.xmlDoc.getElementsByTagName('image')[0];
-    this.tilesX = image.getElementsByTagName("tilesx")[0].textContent;
-    this.tilesY = image.getElementsByTagName("tilesy")[0].textContent;
-      // Event listener: Sprite was loaded =>
-      //   play animation only when the sprite is loaded
-    this.sprite.addEventListener("load", () =>
-    {
-      if(ACTIVATE_DEBUG) console.log("Sprite image loaded");
-      var attribute =
-      "width:" + (this.sprite.width) + "px;" +
-      "height:" + (this.sprite.height) + "px;" +
-      "position:absolute;" +
-      "top:0px;" +
-      "left:0px;" +
-      "max-width: none;";
-      this.DOMimg.setAttribute("style", attribute);
-        // prevent to move image (will show the entire sprite sheet if not catched)
-      this.DOMimg.addEventListener("dragstart", e => {e.preventDefault(); return false;});
-      this.imageW = this.sprite.width / this.tilesX;
-      this.imageH = this.sprite.height / this.tilesY;
-      attribute =
-        "width:" + (this.imageW) + "px;" +
-        "height:" + (this.imageH) + "px;" +
-        "position:fixed;" +
-        "top:" + (this.imageY) + "px;" +
-        "left:" + (this.imageX) + "px;" +
-        "transform:rotatey(0deg);" +
-        "cursor:move;" +
-        "z-index:2000;" +
-        "overflow:hidden;" +
-        "image-rendering: crisp-edges;";
-      this.DOMdiv.setAttribute("style", attribute);
-      this.DOMdiv.appendChild(this.DOMimg);
+  _parseXML(text) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/xml');
+        this.xmlDoc = doc;
 
-      if(this.isChild)
-        this._spawnChild();
-      else
-        this._spawnESheep();
-    });
+        const image = doc.getElementsByTagName('image')[0];
+        const tilesX = image.getElementsByTagName("tilesx")[0].textContent;
+        const tilesY = image.getElementsByTagName("tilesy")[0].textContent;
+        const png = image.getElementsByTagName("png")[0].textContent;
 
+        this.tilesX = tilesX;
+        this.tilesY = tilesY;
 
-    this.sprite.src = 'data:image/png;base64,' + image.getElementsByTagName("png")[0].textContent;
-    this.DOMimg.setAttribute("src", this.sprite.src);
+        // `new Image()` is deprecated
+        const sprite = document.createElement('img');
+        sprite.src = `data:image/png;base64,${png}`
+        this.sprite = sprite;
+
+        // TODO: no need additional `sprite`?
+        this.DOMimg.src = sprite.src;
+
+        // Event listener: Sprite was loaded => play animation only when the sprite is loaded
+        sprite.addEventListener("load", (event) => {
+            ACTIVATE_DEBUG && console.log("Sprite image loaded");
+            this.DOMimg.style = [
+                `width:${sprite.width}px;`,
+                `height:${sprite.height}px;`,
+                'position:absolute;',
+                'top:0px;',
+                'left:0px;',
+                'max-width:none;',
+            ].join('');
+
+            // prevent to move image (will show the entire sprite sheet if not catched)
+            this.DOMimg.addEventListener("dragstart", (event) => { event.preventDefault(); });
+
+            this.imageW = sprite.width / this.tilesX;
+            this.imageH = sprite.height / this.tilesY;
+
+            this.DOMdiv.style = [
+                `width:${this.imageW}px;`,
+                `height:${this.imageH}px;`,
+                'position:fixed;',
+                `top:${this.imageY}px;`,
+                `left:${this.imageX}px;`,
+                'transform:rotatey(0deg);',
+                'cursor:move;',
+                'z-index:2000;',
+                'overflow:hidden;',
+                'image-rendering:crisp-edges;',
+            ].join('');
+
+            this.DOMdiv.append(this.DOMimg);
+
+            // Apua: always false?
+            console.log('this.isChild', this.isChild);
+
+            if (this.isChild)
+                this._spawnChild();
+            else
+                this._spawnESheep();
+        });
 
     // Mouse move over eSheep, check if eSheep should be moved over the screen
     this.DOMdiv.addEventListener("mousemove", e =>
@@ -196,33 +231,29 @@ class eSheep {
         this.DOMinfo.style.top = this.imageY + "px";
       }
     });
-    // Window resized, recalculate eSheep bounds
-    document.body.addEventListener("resize", () =>
-    {
-      this.screenW = window.innerWidth
-                || document.documentElement.clientWidth
-                || document.body.clientWidth;
+        // Window resized, recalculate eSheep bounds
+        window.addEventListener("resize", (event) => {
+            [this.screenW, this.screenH] = getScreen();
 
-      this.screenH = window.innerHeight
-                || document.documentElement.clientHeight
-                || document.body.clientHeight;
+            // Apua: sheep on the ground
+            if (this.imageY + this.imageH > this.screenH) {
+                this.imageY = this.screenH - this.imageH;
+                this.DOMdiv.style.top = this.imageY + "px";
+            }
 
-      if(this.imageY + this.imageH > this.screenH)
-      {
-        this.imageY = this.screenH - this.imageH;
-        this.DOMdiv.style.top = this.imageY + "px";
-      }
-      if(this.imageX + this.imageW > this.screenW)
-      {
-        this.imageX = this.screenW - this.imageW;
-        this.DOMdiv.style.left = this.imageX + "px";
-      }
-    });
-    // Don't allow contextmenu over the sheep
-    this.DOMdiv.addEventListener("contextmenu", e => {
-      e.preventDefault();
-      return false;
-    });
+            // Apua: resizing screen left fix change sheep related position,
+            // thus consider screen right.
+            if (this.imageX + this.imageW > this.screenW) {
+                this.imageX = this.screenW - this.imageW;
+                this.DOMdiv.style.left = this.imageX + "px";
+            }
+        });
+
+        // Don't allow contextmenu (mouse right key) over the sheep
+        this.DOMdiv.addEventListener("contextmenu", (event) => {
+            e.preventDefault();
+        });
+
     // Mouse released
     this.DOMdiv.addEventListener("mouseup", e => {
       if(this.dragging)
@@ -236,7 +267,7 @@ class eSheep {
       }
       else
       {
-        if(this.userOptions.allowPopup === "yes")
+        if(this.userOptions.allowPopup)
         {
           this.DOMinfo.style.left = Math.min(this.screenW-this.imageW, Math.max(this.imageW, parseInt(this.imageX + this.imageW/2))) + "px";
           this.DOMinfo.style.top = parseInt(this.imageY) + "px";
@@ -250,61 +281,71 @@ class eSheep {
       this.DOMinfo.Hide();
       this.infobox = false;
     });
-      // Create About box
-    var attribute =
-      "width:200px;" +
-      "height:100px;" +
-      "transform:translate(-50%, -50%) scale(0.1);" +
-      "position:fixed;" +
-      "top:100px;left:10px;" +
-      "display:none;" +
-      "border-width:2px;" +
-      "border-radius:5px;" +
-      "border-style:ridge;" +
-      "border-color:#0000ab;" +
-      "text-align:center;" +
-      "text-shadow: 1px 1px 3px #ffff88;" +
-      "box-shadow: 3px 3px 10px #888888;" +
-      "color:black;" +
-      "opacity:0.9;" +
-      "z-index:9999;" +
-      "overflow:auto;" +
-      "transition:transform 0.3s ease;" +
-      "background: linear-gradient(to bottom right, rgba(128,128,255,0.7), rgba(200,200,255,0.4));";
-    this.DOMinfo.setAttribute("style",attribute);
-    var headerNode = this.xmlDoc.getElementsByTagName('header')[0];
-    var htmlT = document.createElement("b").appendChild(document.createTextNode(headerNode.getElementsByTagName('title')[0].textContent));
-    var htmlV = document.createElement("sup");
-    var htmlL = document.createElement("a");
-    var htmlP = document.createElement("p");
-    htmlV.appendChild(document.createTextNode("App v." + VERSION));
-    htmlV.appendChild(document.createElement("br"));
-    htmlV.appendChild(document.createTextNode("Pet v." + headerNode.getElementsByTagName('version')[0].textContent));
-    htmlV.setAttribute("style", "float:right;text-align:right;");
-    htmlL.appendChild(document.createTextNode("\u{1F3E0}"));
-    htmlL.setAttribute("href", "https://github.com/Adrianotiger/web-esheep");
-    htmlL.setAttribute("target", "_blank");
-    htmlL.setAttribute("style", "float:left");
-    htmlP.appendChild(document.createTextNode(headerNode.getElementsByTagName('info')[0].textContent));
-    htmlP.setAttribute("style", "font-size:" + (100 - parseInt(headerNode.getElementsByTagName('info')[0].textContent.length / 10)) + "%;");
-    this.DOMinfo.appendChild(htmlV);
-    this.DOMinfo.appendChild(htmlL);
-    if(this.userOptions.allowPets !== "none")
-    {
-      htmlL = document.createElement("a");
-      htmlL.appendChild(document.createTextNode("\u{2699}"));
-      htmlL.setAttribute("href", "javascript:;");
-      htmlL.setAttribute("style", "float:left");
-      this.DOMinfo.appendChild(htmlL);
-      setTimeout(()=>{this._loadPetList(htmlL);},100);
-    }
-    this.DOMinfo.appendChild(htmlT);
-    this.DOMinfo.appendChild(document.createElement("br"));
-    this.DOMinfo.appendChild(document.createElement("hr"));
-    this.DOMinfo.appendChild(htmlP);
-      // Add about and sheep elements to the body
-    document.body.appendChild(this.DOMinfo);
-    document.body.appendChild(this.DOMdiv);
+
+
+        // Create About box
+        this.DOMinfo.style = ''
+            + 'width:400px;'
+            + 'height:100px;'
+            + 'transform:translate(-50%, -50%) scale(0.1);'
+            + 'position:fixed;'
+            + 'top:100px;left:10px;'
+            + 'display:none;'
+            + 'border-width:2px;'
+            + 'border-radius:5px;'
+            + 'border-style:ridge;'
+            + 'border-color:#0000ab;'
+            + 'text-align:center;'
+            + 'text-shadow:1px 1px 3px #ffff88;'
+            + 'box-shadow:3px 3px 10px #888888;'
+            + 'color:black;'
+            + 'opacity:0.9;'
+            + 'z-index:9999;'
+            + 'overflow:auto;'
+            + 'transition:transform 0.3s ease;'
+            + 'background:linear-gradient('
+            + 'to bottom right, rgba(128,128,255,0.7), rgba(200,200,255,0.4));'
+            ;
+
+        const
+            headerNode = this.xmlDoc.getElementsByTagName('header')[0] ,
+            title = headerNode.getElementsByTagName('title')[0].textContent ,
+            version = headerNode.getElementsByTagName('version')[0].textContent ,
+            info = headerNode.getElementsByTagName('info')[0].textContent ;
+
+        const htmlV = document.createElement('sup');
+        htmlV.innerHTML = `App v.${VERSION}<br>Pet v.${version}`;
+        htmlV.style = 'float:right;text-align:right;';
+
+        const htmlL = document.createElement('a'); //???
+        htmlL.append('🏠');
+        htmlL.href = 'https://github.com/Adrianotiger/web-esheep';
+        htmlL.target = '_blank';
+        htmlL.style = 'float:left';
+
+        this.DOMinfo.append(htmlV, htmlL);
+
+        if (this.userOptions.allowPets) {
+            const htmlLL = document.createElement('a');
+            htmlLL.append('⚙');
+            htmlLL.href = 'javascript:;';
+            htmlLL.style = 'float:left';
+            this.DOMinfo.append(htmlLL);
+            // Apua: ??
+            setTimeout(() => {this._loadPetList(htmlLL);}, 100);
+        }
+
+        const htmlT = document.createElement('b');
+        htmlT.append(title);
+
+        const htmlP = document.createElement('p');
+        htmlP.append(info);
+        htmlP.style = `font-size:${100 - parseInt(info.length / 10)}%;`;
+
+        this.DOMinfo.append(htmlT, document.createElement('br'), document.createElement('hr'), htmlP);
+
+        // Add about and sheep elements to the body
+        document.body.append(this.DOMinfo, this.DOMdiv);
 
     this.DOMinfo.Show = () => {
       this.DOMinfo.style.display = "block";
