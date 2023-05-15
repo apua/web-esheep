@@ -279,12 +279,12 @@ class eSheep {
         }
       }
     });
-    // Mouse released over the info box
-    this.DOMinfo.addEventListener("mouseup", e => {
-      this.DOMinfo.Hide();
-      this.infobox = false;
-    });
 
+        // Click pet info to hide it
+        this.DOMinfo.addEventListener('click', (event) => {
+            this.DOMinfo.Hide();
+            this.infobox = false;
+        });
 
         // Create About box
         this.DOMinfo.style = ''
@@ -771,6 +771,7 @@ class eSheep {
     async _loadPetList(element, this_) {
         fetchPets().then(pets => {
             // TODO it cannot fold
+            element.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); });
             element.addEventListener("mouseup", e => {
                 e.preventDefault();
                 e.stopPropagation();
