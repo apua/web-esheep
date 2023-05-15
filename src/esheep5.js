@@ -158,7 +158,7 @@ class eSheep {
         this.DOMimg.src = sprite.src;
 
         // Event listener: Sprite was loaded => play animation only when the sprite is loaded
-        sprite.addEventListener("load", (event) => {
+        sprite.addEventListener('load', (event) => {
             ACTIVATE_DEBUG && console.log("Sprite image loaded");
             this.DOMimg.style = [
                 `width:${sprite.width}px;`,
@@ -199,86 +199,63 @@ class eSheep {
                 this._spawnESheep();
         });
 
-    // Mouse move over eSheep, check if eSheep should be moved over the screen
-    this.DOMdiv.addEventListener("mousemove", e =>
-    {
-      if(!this.dragging && e.buttons==1 && e.button==0)
-      {
-        this.dragging = true;
-        this.HTMLelement = null;
-        var childsRoot = this.xmlDoc.getElementsByTagName('animations')[0];
-        var childs = childsRoot.getElementsByTagName('animation');
-        for(var k=0;k<childs.length;k++)
-        {
-          if(childs[k].getElementsByTagName('name')[0].textContent == "drag")
-          {
-            this.animationId = childs[k].getAttribute("id");
-            this.animationStep = 0;
-            this.animationNode = childs[k];
-            break;
-          }
-        }
-      }
-    });
-    // Add event listener to body, if mouse moved too fast over the dragging eSheep
-    document.body.addEventListener("mousemove", e =>
-    {
-      if(this.dragging)
-      {
-        this.imageX = parseInt(e.clientX) - this.imageW/2;
-        this.imageY = parseInt(e.clientY) - this.imageH/2;
-
-        this.DOMdiv.style.left = this.imageX + "px";
-        this.DOMdiv.style.top = this.imageY + "px";
-        this.DOMinfo.style.left = parseInt(this.imageX + this.imageW/2) + "px";
-        this.DOMinfo.style.top = this.imageY + "px";
-      }
-    });
-        // Window resized, recalculate eSheep bounds
-        window.addEventListener("resize", (event) => {
-            [this.screenW, this.screenH] = getScreen();
-
-            // Apua: sheep on the ground
-            if (this.imageY + this.imageH > this.screenH) {
-                this.imageY = this.screenH - this.imageH;
-                this.DOMdiv.style.top = this.imageY + "px";
-            }
-
-            // Apua: resizing screen left fix change sheep related position,
-            // thus consider screen right.
-            if (this.imageX + this.imageW > this.screenW) {
-                this.imageX = this.screenW - this.imageW;
-                this.DOMdiv.style.left = this.imageX + "px";
-            }
-        });
-
         // Don't allow contextmenu (mouse right key) over the sheep
-        this.DOMdiv.addEventListener("contextmenu", (event) => {
-            event.preventDefault();
+        this.DOMdiv.addEventListener('contextmenu', (event) => { event.preventDefault(); });
+
+        this.DOMdiv.addEventListener('click', (event) => {
+            console.log('click event', event);
+            if (!this.infobox && this.userOptions.allowPopup) {
+                const left = Math.min(this.screenW-this.imageW, Math.max(this.imageW, parseInt(this.imageX + this.imageW/2)));
+                const top = parseInt(this.imageY);
+                this.DOMinfo.style.left = `${left}px`;
+                this.DOMinfo.style.top = `${top}px`;
+                this.DOMinfo.Show();
+                this.infobox = true;
+            } else {
+                this.DOMinfo.Hide();
+                this.infobox = false;
+            }
         });
 
-    // Mouse released
-    this.DOMdiv.addEventListener("mouseup", e => {
-      if(this.dragging)
-      {
-        this.dragging = false;
-      }
-      else if(this.infobox)
-      {
-        this.DOMinfo.Hide();
-        this.infobox = false;
-      }
-      else
-      {
-        if(this.userOptions.allowPopup)
-        {
-          this.DOMinfo.style.left = Math.min(this.screenW-this.imageW, Math.max(this.imageW, parseInt(this.imageX + this.imageW/2))) + "px";
-          this.DOMinfo.style.top = parseInt(this.imageY) + "px";
-          this.DOMinfo.Show();
-          this.infobox = true;
-        }
-      }
-    });
+        // TODO better way to drag'n'drop https://javascript.info/mouse-drag-and-drop
+        // *******************************************************************************
+
+        // TODO it seems consider drag multiple pets and drop each
+        this.DOMdiv.addEventListener("mousemove", (event) => {
+            if (!this.dragging && event.buttons==1 && event.button==0) {
+                this.dragging = true;
+                this.HTMLelement = null;
+
+                for (const child of this.xmlDoc.getElementsByTagName('animations')[0]
+                                                .getElementsByTagName('animation'))
+                    if (child.getElementsByTagName('name')[0].textContent == 'drag') {
+                        this.animationNode = child;
+                        this.animationId = child.getAttribute('id');
+                        this.animationStep = 0;
+                        break
+                    }
+            }
+        });
+
+        // TODO "too fast" ??
+        // Add event listener to body, if mouse moved too fast over the dragging eSheep
+        document.body.addEventListener("mousemove", (event) => {
+            if (this.dragging) {
+                this.imageX = parseInt(event.clientX) - this.imageW/2;
+                this.imageY = parseInt(event.clientY) - this.imageH/2;
+
+                // TODO better way to move div?
+                this.DOMdiv.style.left = `${this.imageX}px`;
+                this.DOMdiv.style.top = `${this.imageY}px`;
+                this.DOMinfo.style.left = `${parseInt(this.imageX + this.imageW/2)}px`;
+                this.DOMinfo.style.top = `${this.imageY}px`;
+            }
+        });
+
+        // Mouse released
+        this.DOMdiv.addEventListener('mouseup', (event) => { this.dragging = false; });
+
+        // *******************************************************************************
 
         // Click pet info to hide it
         this.DOMinfo.addEventListener('click', (event) => {
@@ -331,6 +308,24 @@ class eSheep {
         // TODO: `DOMinfo` is petinfo and could be encapsulate to custom element?
         this.DOMinfo.Show = () => { this.DOMinfo.style.transform = "translate(-50%, -100%) scale(1.0)"; };
         this.DOMinfo.Hide = () => { this.DOMinfo.style.transform = "translate(-50%, -50%) scale(0)"; };
+
+        // Window resized, recalculate eSheep bounds
+        window.addEventListener("resize", (event) => {
+            [this.screenW, this.screenH] = getScreen();
+
+            // Apua: sheep on the ground
+            if (this.imageY + this.imageH > this.screenH) {
+                this.imageY = this.screenH - this.imageH;
+                this.DOMdiv.style.top = `${this.imageY}px`;
+            }
+
+            // Apua: resizing screen left fix change sheep related position,
+            // thus consider screen right.
+            if (this.imageX + this.imageW > this.screenW) {
+                this.imageX = this.screenW - this.imageW;
+                this.DOMdiv.style.left = `${this.imageX}px`;
+            }
+        });
     };
 
     /*
