@@ -31,7 +31,6 @@ function evaluate(value, sheep) {
 async function fetchPets() {
     const resp = await fetch("https://adrianotiger.github.io/desktopPet/Pets/pets.json", {credentials: 'same-origin', cache: "force-cache"});
     const json = await resp.json();
-    ACTIVATE_DEBUG && console.log(json);
     return json.pets;
 }
 
@@ -323,10 +322,7 @@ class eSheep {
             <b>${title}</b><br><hr>
             <p style="font-size:${100 - parseInt(info.length / 10)}%;">${info}</p>
             `;
-
-        this.DOMinfo.querySelectorAll('.pets').forEach((pets) => {
-            setTimeout(() => {this._loadPetList(pets);}, 100);
-        });
+        this.DOMinfo.querySelectorAll('.pets').forEach((pet) => { this._loadPetList(pet, this); });
 
         // Add about and sheep elements to the body
         document.body.append(this.DOMinfo, this.DOMdiv);
@@ -771,8 +767,10 @@ class eSheep {
     /*
      * Load Pet List from GitHub, so user can change it
      */
-    _loadPetList(element) {
+    // Apua: `async` method has no `this`.
+    async _loadPetList(element, this_) {
         fetchPets().then(pets => {
+            // TODO it cannot fold
             element.addEventListener("mouseup", e => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -789,11 +787,11 @@ class eSheep {
                     pet.textContent = pets[k].folder;
                     pet.addEventListener("click", () => {
                         const options = {
-                            allowPets: this.userOptions.allowPets || "none",
-                            allowPopup: this.userOptions.allowPopup && "yes",
+                            allowPets: this_.userOptions.allowPets || "none",
+                            allowPopup: this_.userOptions.allowPopup && "yes",
                         };
                         (new eSheep(options)).Start(`https://adrianotiger.github.io/desktopPet/Pets/${pets[k].folder}/animations.xml`);
-                        this.remove();
+                        this_.remove();
                     });
                     div.append(pet);
                 }
