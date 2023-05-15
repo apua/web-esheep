@@ -254,7 +254,7 @@ class eSheep {
 
         // Don't allow contextmenu (mouse right key) over the sheep
         this.DOMdiv.addEventListener("contextmenu", (event) => {
-            e.preventDefault();
+            event.preventDefault();
         });
 
     // Mouse released
