@@ -111,13 +111,13 @@ class eSheep {
     start(animation = DEFAULT_XML) {
         this.animationFile = animation;
 
-        fetch(this.animationFile).then(resp => {
-            resp.text().then((payload) => {
-                if (resp.ok)
-                    this._parseXML(payload);
-                else
-                    console.error(`XML not available: ${resp.statusText}\n${payload}`);
-            });
+        fetch(this.animationFile).then(async (resp) => {
+            const payload = await resp.text();
+            if (resp.ok) {
+                this._parseXML(payload);
+            } else {
+                console.error(`XML not available: ${resp.statusText}\n${payload}`);
+            }
         });
     }
 
