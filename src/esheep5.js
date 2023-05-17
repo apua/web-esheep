@@ -365,23 +365,19 @@ class eSheep {
      * If absolute is true, the x and y coordinates are used as absolute values.
      * If false, x and y are added to the current position
      */
-  _setPosition(x, y, absolute)
-  {
-    if (this.DOMdiv) {
-      if(absolute)
-      {
-        this.imageX = parseInt(x);
-        this.imageY = parseInt(y);
-      }
-      else
-      {
-        this.imageX = parseInt(this.imageX) + parseInt(x);
-        this.imageY = parseInt(this.imageY) + parseInt(y);
-      }
-      this.DOMdiv.style.left = this.imageX + "px";
-      this.DOMdiv.style.top = this.imageY + "px";
+    setPosition(x, y, absolute = false) {
+        console.assert(Boolean(this.DOMdiv));
+        if (absolute) {
+            this.imageX = x;
+            this.imageY = y;
+        } else {
+            this.imageX += x;
+            this.imageY += y;
+        }
+        this.DOMdiv.style.left = `${this.imageX}px`;
+        this.DOMdiv.style.top = `${this.imageY}px`;
     }
-  }
+    _setPosition = this.setPosition;
 
     /*
      * Spawn new esheep, this is called if the XML was loaded successfully
