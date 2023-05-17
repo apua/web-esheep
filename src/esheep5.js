@@ -3,6 +3,7 @@ const ACTIVATE_DEBUG = true;         // show log on console
 const DEFAULT_XML = "https://adrianotiger.github.io/desktopPet/Pets/esheep64/animations.xml"; // default XML animation
 const COLLISION_WITH = ["div", "hr"]; // elements on page to detect for collisions
 
+
 /*
  * Parse the human readable expression from XML to a computer readable expression
  */
@@ -28,11 +29,13 @@ function evaluate(value, sheep) {
     }
 }
 
+
 async function fetchPets() {
     const resp = await fetch("https://adrianotiger.github.io/desktopPet/Pets/pets.json", {credentials: 'same-origin', cache: "force-cache"});
     const json = await resp.json();
     return json.pets;
 }
+
 
 function getScreen() {
     if (ACTIVATE_DEBUG) {
@@ -55,6 +58,35 @@ function getScreen() {
     }
     return [window.innerWidth, window.innerHeight];
 }
+
+
+class Animation {
+    constructor(xml) {
+        this.dom = (new DOMParser()).parseFromString(xml, 'text/xml');
+        this.map = new Map([...this.dom.children].map((elm) => [
+            elm.nodeName,
+            new Map([...elm.children].map((elm) => [
+                elm.nodeName,
+                ['header', 'image'].includes(elm.nodeName) ?
+                    new Map([...elm.children].map((elm) => [elm.nodeName, elm.textContent]))
+                : 'spawns' == elm.nodeName ?
+                    [...elm.children].map((elm) => new Map(
+                        [...elm.children].map((elm) => [elm.nodeName, elm.textContent])
+                        .concat([['probability', elm.getAttribute('probability')]])
+                    ))
+                :
+                    elm
+            ]))
+        ]));
+    }
+}
+// Apua: for debug
+window.Animation = Animation;
+fetch('animation.xml').then(async (resp) => {
+    const payload = await resp.text();
+    window.animation = new Animation(payload);
+});
+
 
 /*
  * eSheep class.
