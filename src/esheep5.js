@@ -156,14 +156,14 @@ class eSheep {
     // backward compatible
     Start = this.start;
 
-  remove() {
-    this.prepareToDie = true;
-    this.DOMinfo.Hide();
-    setTimeout(() => {
-      this.DOMdiv = this.DOMimg = this.DOMinfo = null;
-      document.getElementById(this.id).outerHTML = '';
-    }, 500);
-  }
+    remove() {
+        this.prepareToDie = true;
+        this.DOMinfo.addEventListener('transitionend', (event) => {
+            this.DOMdiv = this.DOMimg = this.DOMinfo = null;
+            document.getElementById(this.id).outerHTML = '';
+        });
+        this.DOMinfo.Hide();
+    }
 
     /*
      * Parse loaded XML, contains spawn, animations and childs
@@ -824,8 +824,8 @@ class eSheep {
                     div.append(pet);
                 }
 
+                div.addEventListener('click', (event) => { div.remove(); });
                 element.parentElement.append(div);
-                div.addEventListener("click", (event) => {element.parentElement.remove(div);});
             });
         });
     }
