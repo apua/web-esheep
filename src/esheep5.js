@@ -551,40 +551,26 @@ class eSheep {
   }
 
     /*
-     * Try to get the value of a node (from the current animationNode), if it is not possible returns the defaultValue
-     */
-  _getNodeValue(nodeName, valueName, defaultValue)
-  {
-    if(!this.animationNode || !this.animationNode.getElementsByTagName(nodeName)) return;
-    if(this.animationNode.getElementsByTagName(nodeName)[0].getElementsByTagName(valueName)[0])
-    {
-      var value = this.animationNode.getElementsByTagName(nodeName)[0].getElementsByTagName(valueName)[0].textContent;
-
-      return this._parseKeyWords(value);
-    }
-    else
-    {
-      return defaultValue;
-    }
-  }
-
-    /*
      * Next step (each frame is a step)
      */
-  _nextESheepStep()
-  {
-    if(this.prepareToDie) return;
+    _nextESheepStep() {
+        if (this.prepareToDie) return;
 
-    var x1 = this._getNodeValue('start','x',0);
-    var y1 = this._getNodeValue('start','y',0);
-    var off1 = this._getNodeValue('start','offsety',0);
-    var opa1 = this._getNodeValue('start','opacity',1);
-    var del1 = this._getNodeValue('start','interval',1000);
-    var x2 = this._getNodeValue('end','x',0);
-    var y2 = this._getNodeValue('end','y',0);
-    var off2 = this._getNodeValue('end','offsety',0);
-    var opa2 = this._getNodeValue('end','interval',1);
-    var del2 = this._getNodeValue('end','interval',1000);
+        const getNodeValue = (nodeName, valueName, _defaultValue) => {
+            const value = this.animationNode.getElementsByTagName(nodeName)[0].getElementsByTagName(valueName)[0].textContent;
+            return evaluate(value, this);
+        };
+
+    var x1 = getNodeValue('start','x',0);
+    var y1 = getNodeValue('start','y',0);
+    var off1 = getNodeValue('start','offsety',0);
+    var opa1 = getNodeValue('start','opacity',1);
+    var del1 = getNodeValue('start','interval',1000);
+    var x2 = getNodeValue('end','x',0);
+    var y2 = getNodeValue('end','y',0);
+    var off2 = getNodeValue('end','offsety',0);
+    var opa2 = getNodeValue('end','interval',1);
+    var del2 = getNodeValue('end','interval',1000);
 
     var repeat = this._parseKeyWords(this.animationNode.getElementsByTagName('sequence')[0].getAttribute('repeat'));
     var repeatfrom = this.animationNode.getElementsByTagName('sequence')[0].getAttribute('repeatfrom');
