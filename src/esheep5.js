@@ -429,20 +429,10 @@ class eSheep {
     /*
      * Like spawnESheep, but for Childs
      */
-  _spawnChild()
-  {
-    var childsRoot = this.xmlDoc.getElementsByTagName('animations')[0];
-    var childs = childsRoot.getElementsByTagName('animation');
-    for(var k=0;k<childs.length;k++)
-    {
-      if(childs[k].getAttribute("id") == this.animationId)
-      {
-        this.animationNode = childs[k];
-        break;
-      }
+    _spawnChild() {
+        this.animationNode = [...this.xmlDoc.getElementsByTagName('animation')].find(elm => elm.getAttribute('id') == this.animationId);
+        this._nextESheepStep();
     }
-    this._nextESheepStep();
-  }
 
     /*
      * Once the animation is over, get the next animation to play
