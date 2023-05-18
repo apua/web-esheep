@@ -1,6 +1,7 @@
 const VERSION = '0.9.2';              // web eSheep version
 const ACTIVATE_DEBUG = true;         // show log on console
-const DEFAULT_XML = "https://adrianotiger.github.io/desktopPet/Pets/esheep64/animations.xml"; // default XML animation
+const DEFAULT_XML = 'animation.xml'; // default XML animation
+//const DEFAULT_XML = "https://adrianotiger.github.io/desktopPet/Pets/esheep64/animations.xml"; // default XML animation
 const COLLISION_WITH = ["div", "hr"]; // elements on page to detect for collisions
 
 
@@ -19,6 +20,7 @@ function evaluate(value, sheep) {
         .replace(/randS/g, sheep.randS)
         .replace(/imageX/g, sheep.imageX)
         .replace(/imageY/g, sheep.imageY)
+        .replace(/Convert\((.*),System.Int32\)/, '$1')
     ;
 
     try {
@@ -382,63 +384,47 @@ class eSheep {
     /*
      * Spawn new esheep, this is called if the XML was loaded successfully
      */
-  _spawnESheep()
-  {
-    var spawnsRoot = this.xmlDoc.getElementsByTagName('spawns')[0];
-    var spawns = spawnsRoot.getElementsByTagName('spawn');
-    var prob = 0;
-    for(var i=0;i<spawns.length;i++)
-      prob += parseInt(spawns[0].getAttribute("probability"));
-    var rand = Math.random() * prob;
-    prob = 0;
-    for(i=0;i<spawns.length;i++)
-    {
-      prob += parseInt(spawns[i].getAttribute("probability"));
-      if(prob >= rand || i == spawns.length-1)
-      {
-        this._setPosition(
-          this._parseKeyWords(spawns[i].getElementsByTagName('x')[0].textContent),
-          this._parseKeyWords(spawns[i].getElementsByTagName('y')[0].textContent),
-          true
-        );
-        if(ACTIVATE_DEBUG) console.log("Spawn: " + this.imageX + ", " + this.imageY);
-        this.animationId = spawns[i].getElementsByTagName('next')[0].textContent;
-        this.animationStep = 0;
-        var childsRoot = this.xmlDoc.getElementsByTagName('animations')[0];
-        var childs = childsRoot.getElementsByTagName('animation');
-        for(var k=0;k<childs.length;k++)
-        {
-          if(childs[k].getAttribute("id") == this.animationId)
-          {
-            this.animationNode = childs[k];
+    _spawnESheep() {
+        const spawns = this.xmlDoc.getElementsByTagName('spawns')[0].getElementsByTagName('spawn');
+        const weights = [...spawns].map((elm) => parseInt(elm.getAttribute('probability')));
 
-              // Check if child should be loaded toghether with this animation
-            var childsRoot = this.xmlDoc.getElementsByTagName('childs')[0];
-            var childs = childsRoot.getElementsByTagName('child');
-            for(var j=0;j<childs.length;j++)
-            {
-              if(childs[j].getAttribute("animationid") == this.animationId)
-              {
-                if(ACTIVATE_DEBUG) console.log("Child from Spawn");
-                var eSheepChild = new eSheep({}, true);
-                eSheepChild.animationId = childs[j].getElementsByTagName('next')[0].textContent;
-                var x = childs[j].getElementsByTagName('x')[0].textContent;//
-                var y = childs[j].getElementsByTagName('y')[0].textContent;
-                eSheepChild._setPosition(this._parseKeyWords(x), this._parseKeyWords(y), true);
-                // Start animation
-                eSheepChild.Start(this.animationFile);
-                break;
-              }
-            }
-            break;
-          }
+        let sum = 0;
+        const cumulative = weights.map(w => sum += w);
+        const rand = Math.random();
+        const threshold = rand * sum;
+        const idx = cumulative.findIndex(v => v >= threshold);
+        ACTIVATE_DEBUG && console.log(rand, sum, cumulative, threshold, idx);
+
+        this._setPosition(
+            evaluate(spawns[idx].getElementsByTagName('x')[0].textContent, this),
+            evaluate(spawns[idx].getElementsByTagName('y')[0].textContent, this),
+            true,
+        );
+
+        ACTIVATE_DEBUG && console.log(`Spawn: ${this.imageX}, ${this.imageY}`);
+        this.animationId = spawns[idx].getElementsByTagName('next')[0].textContent;
+        this.animationStep = 0;
+        this.animationNode = [...this.xmlDoc.getElementsByTagName('animation')].find(elm => elm.getAttribute('id') == this.animationId);
+
+        const child = [...this.xmlDoc.getElementsByTagName('child')].find(elm => elm.getAttribute('animationid') == this.animationId);
+        if (child !== undefined) {
+            ACTIVATE_DEBUG && console.log("Child from Spawn");
+
+            const eSheepChild = new eSheep({}, true);
+            eSheepChild.animationId = child.getElementsByTagName('next')[0].textContent;
+            eSheepChild._setPosition(
+                evaluate(child.getElementsByTagName('x')[0].textContent, eSheepChild),
+                evaluate(child.getElementsByTagName('y')[0].textContent, eSheepChild),
+                true,
+            );
+            // Start animation
+            eSheepChild.Start(this.animationFile);
+            // TODO: there is a bug that 64bit animate always fail with idx=2, animationId=21
         }
-        break;
-      }
+
+        // Play next step
+        this._nextESheepStep();
     }
-      // Play next step
-    this._nextESheepStep();
-  }
 
     /*
      * Like spawnESheep, but for Childs
