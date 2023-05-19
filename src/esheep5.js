@@ -237,7 +237,6 @@ class eSheep {
         this.DOMdiv.addEventListener('contextmenu', (event) => { event.preventDefault(); });
 
         this.DOMdiv.addEventListener('click', (event) => {
-            console.log('click event', event);
             if (!this.infobox && this.userOptions.allowPopup) {
                 const left = Math.min(this.screenW-this.imageW, Math.max(this.imageW, parseInt(this.imageX + this.imageW/2)));
                 const top = parseInt(this.imageY);
@@ -589,12 +588,11 @@ class eSheep {
         this.DOMimg.style.left = `${- this.imageW * (index % this.tilesX)}px`;
         this.DOMimg.style.top = `${- this.imageH * parseInt(index / this.tilesX)}px`;
 
-    if(this.dragging || this.infobox)
-    {
-      this.animationStep++;
-      setTimeout(this._nextESheepStep.bind(this), 50);
-      return;
-    }
+        if (this.dragging || this.infobox) {
+            this.animationStep++;  // TODO what is this?
+            setTimeout(() => this._nextESheepStep(), 50);  // keep `this` by creating arrow function
+            return;
+        }
 
     if(this.flipped)
     {
