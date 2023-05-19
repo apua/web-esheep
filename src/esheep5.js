@@ -561,36 +561,33 @@ class eSheep {
             return evaluate(value, this);
         };
 
-    var x1 = getNodeValue('start','x',0);
-    var y1 = getNodeValue('start','y',0);
-    var off1 = getNodeValue('start','offsety',0);
-    var opa1 = getNodeValue('start','opacity',1);
-    var del1 = getNodeValue('start','interval',1000);
-    var x2 = getNodeValue('end','x',0);
-    var y2 = getNodeValue('end','y',0);
-    var off2 = getNodeValue('end','offsety',0);
-    var opa2 = getNodeValue('end','interval',1);
-    var del2 = getNodeValue('end','interval',1000);
+        let x1 = getNodeValue('start','x',0);
+        const y1 = getNodeValue('start','y',0);
+        const off1 = getNodeValue('start','offsety',0);
+        const opa1 = getNodeValue('start','opacity',1);
+        const del1 = getNodeValue('start','interval',1000);
+        let x2 = getNodeValue('end','x',0);
+        const y2 = getNodeValue('end','y',0);
+        const off2 = getNodeValue('end','offsety',0);
+        const opa2 = getNodeValue('end','interval',1);
+        const del2 = getNodeValue('end','interval',1000);
 
-    var repeat = this._parseKeyWords(this.animationNode.getElementsByTagName('sequence')[0].getAttribute('repeat'));
-    var repeatfrom = this.animationNode.getElementsByTagName('sequence')[0].getAttribute('repeatfrom');
-    var gravity = this.animationNode.getElementsByTagName('gravity');
-    var border = this.animationNode.getElementsByTagName('border');
+        const sequence = this.animationNode.getElementsByTagName('sequence')[0];
+        const repeat = evaluate(sequence.getAttribute('repeat'), this);
+        const repeatfrom = parseInt(sequence.getAttribute('repeatfrom'));
+        const gravity = this.animationNode.getElementsByTagName('gravity');
+        const border = this.animationNode.getElementsByTagName('border');
+        const frames = this.animationNode.getElementsByTagName('frame');
 
-    var steps = this.animationNode.getElementsByTagName('frame').length +
-                (this.animationNode.getElementsByTagName('frame').length - repeatfrom) * repeat;
+        const steps = frames.length + (frames.length - repeatfrom) * repeat;
+        const fidx = (this.animationStep < frames.length) ? this.animationStep
+            : repeatfrom == 0 ? this.animationStep % frames.length
+            : repeatfrom + (this.animationStep - repeatfrom) % (frames.length - repeatfrom)
+            ;
+        const index = frames[fidx].textContent;
 
-    var index;
-
-    if(this.animationStep < this.animationNode.getElementsByTagName('frame').length)
-      index = this.animationNode.getElementsByTagName('frame')[this.animationStep].textContent;
-    else if(repeatfrom == 0)
-      index = this.animationNode.getElementsByTagName('frame')[this.animationStep % this.animationNode.getElementsByTagName('frame').length].textContent;
-    else
-      index = this.animationNode.getElementsByTagName('frame')[parseInt(repeatfrom) + parseInt((this.animationStep - repeatfrom) % (this.animationNode.getElementsByTagName('frame').length - repeatfrom))].textContent;
-
-    this.DOMimg.style.left = (- this.imageW * (index % this.tilesX)) + "px";
-    this.DOMimg.style.top = (- this.imageH * parseInt(index / this.tilesX)) + "px";
+        this.DOMimg.style.left = `${- this.imageW * (index % this.tilesX)}px`;
+        this.DOMimg.style.top = `${- this.imageH * parseInt(index / this.tilesX)}px`;
 
     if(this.dragging || this.infobox)
     {
