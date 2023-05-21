@@ -556,19 +556,25 @@ class eSheep {
         if (this.prepareToDie) return;
 
         const getNodeValue = (nodeName, valueName, _defaultValue) => {
-            const value = this.animationNode.getElementsByTagName(nodeName)[0].getElementsByTagName(valueName)[0].textContent;
-            return evaluate(value, this);
+            const value = this.animationNode
+                .getElementsByTagName(nodeName)[0]
+                .getElementsByTagName(valueName)[0]
+                ?.textContent;
+            if (value !== undefined)
+                return evaluate(value, this);
+            else  // offsety, opacity, interval
+                return;
         };
 
         let x1 = getNodeValue('start','x',0);
         const y1 = getNodeValue('start','y',0);
-        const off1 = getNodeValue('start','offsety',0);
-        const opa1 = getNodeValue('start','opacity',1);
+        //const off1 = getNodeValue('start','offsety',0);
+        //const opa1 = getNodeValue('start','opacity',1);
         const del1 = getNodeValue('start','interval',1000);
         let x2 = getNodeValue('end','x',0);
         const y2 = getNodeValue('end','y',0);
-        const off2 = getNodeValue('end','offsety',0);
-        const opa2 = getNodeValue('end','interval',1);
+        //const off2 = getNodeValue('end','offsety',0);
+        //const opa2 = getNodeValue('end','interval',1);
         const del2 = getNodeValue('end','interval',1000);
 
         const sequence = this.animationNode.getElementsByTagName('sequence')[0];
