@@ -96,8 +96,6 @@ fetch('animation.xml').then(async (resp) => {
  * Once created, you can call [variableName].Start() to start the animation with your desired pet.
  */
 class eSheep {
-    _parseKeyWords = (value) => evaluate(value, this);
-
     /* Parameters for options [default]:
      * - allowPets: [none], all
      * - allowPopup: [yes], no
