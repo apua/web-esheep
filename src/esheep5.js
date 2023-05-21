@@ -605,113 +605,83 @@ class eSheep {
                 return;
         }
 
-    var setNext = false;
+        let setNext = false;
 
-    if(border && border[0] && border[0].getElementsByTagName('next'))
-    {
-      if(x2<0 && this.imageX < 0)
-      {
-        this.imageX = 0;
-        setNext = true;
-      }
-      else if(x2 > 0 && this.imageX > this.screenW - this.imageW)
-      {
-        this.imageX = this.screenW - this.imageW;
-        this.DOMdiv.style.left = parseInt(this.imageX) + "px";
-        setNext = true;
-      }
-      else if(y2 < 0 && this.imageY < 0)
-      {
-        this.imageY = 0;
-        setNext = true;
-      }
-      else if(y2 > 0 && this.imageY > this.screenH - this.imageH)
-      {
-        this.imageY = this.screenH - this.imageH;
-        setNext = true;
-      }
-      else if(y2 > 0)
-      {
-        if(this._checkOverlapping())
-        {
-          if(this.imageY > this.imageH)
-          {
-            this.HTMLelement = this._checkOverlapping();
-            this.imageY = Math.ceil(this.HTMLelement.getBoundingClientRect().top) - this.imageH;
-            setNext = true;
-          }
-        }
-      }
-      else if(this.HTMLelement)
-      {
-        if(!this._checkOverlapping())
-        {
-          if(this.imageY + this.imageH > this.HTMLelement.getBoundingClientRect().top + 3 ||
-             this.imageY + this.imageH < this.HTMLelement.getBoundingClientRect().top - 3)
-          {
-            this.HTMLelement = null;
-          }
-          else if(this.imageX < this.HTMLelement.getBoundingClientRect().left)
-          {
-            this.imageX = parseInt(this.imageX + 3);
-            setNext = true;
-          }
-          else
-          {
-            this.imageX = parseInt(this.imageX - 3);
-            setNext = true;
-          }
-          this.DOMdiv.style.left = parseInt(this.imageX) + "px";
-        }
-      }
-      if(setNext)
-      {
-        if(!this._getNextRandomNode(border[0])) return;
-      }
-    }
-    if(!setNext && gravity && gravity[0] && gravity[0].getElementsByTagName('next'))
-    {
-      if(this.imageY < this.screenH - this.imageH - 2)
-      {
-        if(this.HTMLelement == null)
-        {
-          setNext = true;
-        }
-        else
-        {
-          if(!this._checkOverlapping())
-          {
-            setNext = true;
-            this.HTMLelement = null;
-          }
+        if (border.length) {
+            if (x2<0 && this.imageX < 0) {
+                this.imageX = 0;
+                setNext = true;
+            } else if (x2 > 0 && this.imageX > this.screenW - this.imageW) {
+                this.imageX = this.screenW - this.imageW;
+                this.DOMdiv.style.left = parseInt(this.imageX) + "px";
+                setNext = true;
+            } else if (y2 < 0 && this.imageY < 0) {
+                this.imageY = 0;
+                setNext = true;
+            } else if (y2 > 0 && this.imageY > this.screenH - this.imageH) {
+                this.imageY = this.screenH - this.imageH;
+                setNext = true;
+            } else if (y2 > 0) {
+                if (this._checkOverlapping()) {
+                    if (this.imageY > this.imageH) {
+                        this.HTMLelement = this._checkOverlapping();
+                        this.imageY = Math.ceil(this.HTMLelement.getBoundingClientRect().top) - this.imageH;
+                        setNext = true;
+                    }
+                }
+            } else if (this.HTMLelement) {
+                if (!this._checkOverlapping()) {
+                    if (this.imageY + this.imageH > this.HTMLelement.getBoundingClientRect().top + 3
+                            || this.imageY + this.imageH < this.HTMLelement.getBoundingClientRect().top - 3) {
+                        this.HTMLelement = null;
+                    } else if (this.imageX < this.HTMLelement.getBoundingClientRect().left) {
+                        this.imageX = parseInt(this.imageX + 3);
+                        setNext = true;
+                    } else {
+                        this.imageX = parseInt(this.imageX - 3);
+                        setNext = true;
+                    }
+                    this.DOMdiv.style.left = parseInt(this.imageX) + "px";
+                }
+            }
+
+            if (setNext) {
+                if (!this._getNextRandomNode(border[0]))
+                    return;
+            }
         }
 
-        if(setNext)
-        {
-          if(!this._getNextRandomNode(gravity[0])) return;
-        }
-      }
-    }
-    if(!setNext)
-    {
-      if(this.imageX < - this.imageW && x2 < 0 ||
-        this.imageX > this.screenW && x2 > 0 ||
-        this.imageY < - this.imageH && y1 < 0 ||
-        this.imageY > this.screenH && y2 > 0)
-      {
-        setNext = true;
-        if(!this.isChild) {
-          this._spawnESheep();
-        }
-        return;
-      }
-    }
+        if (!setNext)
+            if (gravity.length && this.imageY < this.screenH - this.imageH - 2) {
+                if (this.HTMLelement == null) {
+                    setNext = true;
+                } else {
+                    if (!this._checkOverlapping()) {
+                        this.HTMLelement = null;
+                        setNext = true;
+                    }
+                }
 
-    setTimeout(
-      this._nextESheepStep.bind(this),
-      parseInt(del1) + parseInt((del2 - del1) * this.animationStep / steps)
-    );
-  }
+                if (setNext && !this._getNextRandomNode(gravity[0]))
+                    return;
+            }
+
+        if (!setNext)
+            if(this.imageX < - this.imageW && x2 < 0
+                    || this.imageX > this.screenW && x2 > 0
+                    || this.imageY < - this.imageH && y1 < 0
+                    || this.imageY > this.screenH && y2 > 0) {
+                if (!this.isChild)
+                    this._spawnESheep();
+                setNext = true;
+                return;
+            }
+
+        setTimeout(
+            () => this._nextESheepStep() ,
+            parseInt(del1) + parseInt((del2 - del1) * this.animationStep / steps)
+        );
+    }
 
     /*
      * Load Pet List from GitHub, so user can change it
