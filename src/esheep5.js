@@ -378,7 +378,6 @@ class eSheep {
         this.DOMdiv.style.left = `${this.imageX}px`;
         this.DOMdiv.style.top = `${this.imageY}px`;
     }
-    _setPosition = this.setPosition;
 
     /*
      * Spawn new esheep, this is called if the XML was loaded successfully
@@ -394,7 +393,7 @@ class eSheep {
         const idx = cumulative.findIndex(v => v >= threshold);
         ACTIVATE_DEBUG && console.log(rand, sum, cumulative, threshold, idx);
 
-        this._setPosition(
+        this.setPosition(
             evaluate(spawns[idx].getElementsByTagName('x')[0].textContent, this),
             evaluate(spawns[idx].getElementsByTagName('y')[0].textContent, this),
             true,
@@ -411,7 +410,7 @@ class eSheep {
 
             const eSheepChild = new eSheep({}, true);
             eSheepChild.animationId = child.getElementsByTagName('next')[0].textContent;
-            eSheepChild._setPosition(
+            eSheepChild.setPosition(
                 evaluate(child.getElementsByTagName('x')[0].textContent, eSheepChild),
                 evaluate(child.getElementsByTagName('y')[0].textContent, eSheepChild),
                 true,
@@ -505,7 +504,7 @@ class eSheep {
           eSheepChild.animationId = childs[k].getElementsByTagName('next')[0].textContent;
           var x = childs[k].getElementsByTagName('x')[0].textContent;//
           var y = childs[k].getElementsByTagName('y')[0].textContent;
-          eSheepChild._setPosition(this._parseKeyWords(x), this._parseKeyWords(y), true);
+          eSheepChild.setPosition(this._parseKeyWords(x), this._parseKeyWords(y), true);
           eSheepChild.Start(this.animationFile);
           break;
         }
@@ -600,47 +599,36 @@ class eSheep {
             return;
         }
 
-    if(this.flipped)
-    {
-      x1 = -x1;
-      x2 = -x2;
-    }
+        if (this.flipped)
+            [x1, x2] = [-x1, -x2];
 
-    if(this.animationStep == 0)
-      this._setPosition(x1, y1, false);
-    else
-      this._setPosition(
-                          parseInt(x1) + parseInt((x2-x1)*this.animationStep/steps),
-                          parseInt(y1) + parseInt((y2-y1)*this.animationStep/steps),
-                          false);
+        if (this.animationStep == 0)
+            this.setPosition(x1, y1, false);
+        else
+            this.setPosition(
+                x1 + parseInt((x2-x1)*this.animationStep/steps),
+                y1 + parseInt((y2-y1)*this.animationStep/steps),
+                false,
+            );
 
-    this.animationStep++;
+        this.animationStep++;
 
-    if(this.animationStep >= steps)
-    {
-      if(this.animationNode.getElementsByTagName('action')[0])
-      {
-        switch(this.animationNode.getElementsByTagName('action')[0].textContent)
-        {
-          case "flip":
-            if(this.DOMdiv.style.transform == "rotateY(0deg)")
-            {
-              this.DOMdiv.style.transform = "rotateY(180deg)";
-              this.flipped = true;
-            }
-            else
-            {
-              this.DOMdiv.style.transform = "rotateY(0deg)";
-              this.flipped = false;
-            }
-            break;
-          default:
+        if (this.animationStep >= steps) {
+            const action = this.animationNode.getElementsByTagName('action')[0]?.textContent;
+            if (action == 'flip')
+                if (this.DOMdiv.style.transform == 'rotateY(0deg)') {
+                    this.DOMdiv.style.transform = "rotateY(180deg)";
+                    this.flipped = true;
+                } else {
+                    this.DOMdiv.style.transform = "rotateY(0deg)";
+                    this.flipped = false;
+                }
+            else;  // none, `undefined`
 
-            break;
+            const sequence = this.animationNode.getElementsByTagName('sequence')[0];
+            if (!this._getNextRandomNode(sequence))
+                return;
         }
-      }
-      if(!this._getNextRandomNode(this.animationNode.getElementsByTagName('sequence')[0])) return;
-    }
 
     var setNext = false;
 
