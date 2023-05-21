@@ -402,9 +402,11 @@ class eSheep {
         ACTIVATE_DEBUG && console.log(`Spawn: ${this.imageX}, ${this.imageY}`);
         this.animationId = spawns[idx].getElementsByTagName('next')[0].textContent;
         this.animationStep = 0;
-        this.animationNode = [...this.xmlDoc.getElementsByTagName('animation')].find(elm => elm.getAttribute('id') == this.animationId);
+        this.animationNode = [...this.xmlDoc.getElementsByTagName('animation')]
+            .find(elm => elm.getAttribute('id') == this.animationId);
 
-        const child = [...this.xmlDoc.getElementsByTagName('child')].find(elm => elm.getAttribute('animationid') == this.animationId);
+        const child = [...this.xmlDoc.getElementsByTagName('child')]
+            .find(elm => elm.getAttribute('animationid') == this.animationId);
         if (child !== undefined) {
             ACTIVATE_DEBUG && console.log("Child from Spawn");
 
@@ -428,91 +430,64 @@ class eSheep {
      * Like spawnESheep, but for Childs
      */
     _spawnChild() {
-        this.animationNode = [...this.xmlDoc.getElementsByTagName('animation')].find(elm => elm.getAttribute('id') == this.animationId);
+        this.animationNode = [...this.xmlDoc.getElementsByTagName('animation')]
+            .find(elm => elm.getAttribute('id') == this.animationId);
         this._nextESheepStep();
     }
 
     /*
      * Once the animation is over, get the next animation to play
      */
-  _getNextRandomNode(parentNode)
-  {
-    var baseNode = parentNode.getElementsByTagName('next');
-    var childsRoot = this.xmlDoc.getElementsByTagName('animations')[0];
-    var childs = childsRoot.getElementsByTagName('animation');
-    var prob = 0;
-    var nodeFound = false;
-
-      // no more animations (it was the last one)
-    if(baseNode.length == 0)
-    {
-        // If it is a child, remove the child from document
-      if(this.isChild)
-      {
-        // remove child
-        if(ACTIVATE_DEBUG) console.log("Remove child");
-        document.body.removeChild(this.DOMinfo);
-        document.body.removeChild(this.DOMdiv);
-        delete this;
-      }
-        // else, spawn sheep again
-      else
-      {
-        this._spawnESheep();
-      }
-      return false;
-    }
-
-    for(var k=0;k<baseNode.length;k++)
-    {
-      prob += parseInt(baseNode[k].getAttribute("probability"));
-    }
-    var rand = Math.random() * prob;
-    var index = 0;
-    prob = 0;
-    for(k=0;k<baseNode.length;k++)
-    {
-      prob += parseInt(baseNode[k].getAttribute("probability"));
-      if(prob >= rand)
-      {
-        index = k;
-        break;
-      }
-    }
-    for(k=0;k<childs.length;k++)
-    {
-      if(childs[k].getAttribute("id") == baseNode[index].textContent)
-      {
-        this.animationId = childs[k].getAttribute("id");
-        this.animationStep = 0;
-        this.animationNode = childs[k];
-        nodeFound = true;
-        break;
-      }
-    }
-
-    if(nodeFound) // create Child, if present
-    {
-      var childsRoot = this.xmlDoc.getElementsByTagName('childs')[0];
-      var childs = childsRoot.getElementsByTagName('child');
-      for(k=0;k<childs.length;k++)
-      {
-        if(childs[k].getAttribute("animationid") == this.animationId)
-        {
-          if(ACTIVATE_DEBUG) console.log("Child from Animation");
-          var eSheepChild = new eSheep({}, true);
-          eSheepChild.animationId = childs[k].getElementsByTagName('next')[0].textContent;
-          var x = childs[k].getElementsByTagName('x')[0].textContent;//
-          var y = childs[k].getElementsByTagName('y')[0].textContent;
-          eSheepChild.setPosition(this._parseKeyWords(x), this._parseKeyWords(y), true);
-          eSheepChild.Start(this.animationFile);
-          break;
+    // return node found or not
+    _getNextRandomNode(sequence) {
+        const nexts = sequence.getElementsByTagName('next');
+        if (nexts.length == 0) {
+            if (this.isChild) {
+                ACTIVATE_DEBUG && console.log('Remove child');
+                // TODO: `this.remove`?
+                document.body.removeChild(this.DOMinfo);
+                document.body.removeChild(this.DOMdiv);
+                delete this;
+            } else {
+                // TODO: shall this happen outside?
+                this._spawnESheep();
+            }
+            return false;
         }
-      }
-    }
 
-    return nodeFound;
-  }
+        const weights = [...nexts].map((elm) => parseInt(elm.getAttribute('probability')));
+        let sum = 0;
+        const cumulative = weights.map(w => sum += w);
+        const rand = Math.random();
+        const threshold = rand * sum;
+        const idx = cumulative.findIndex(v => v >= threshold);
+        const animate = [...this.xmlDoc.getElementsByTagName('animation')]
+            .find(elm => elm.getAttribute('id') == nexts[idx].textContent);
+
+        if (animate !== undefined) {
+            this.animationNode = animate;
+            this.animationId = animate.getAttribute("id");
+            this.animationStep = 0;
+
+            const child = [...this.xmlDoc.getElementsByTagName('child')]
+                .find(elm => elm.getAttribute('animationid') == this.animationId);
+            if (child !== undefined) {
+                ACTIVATE_DEBUG && console.log('Child from Animation');
+                const eSheepChild = new eSheep({}, true);
+                eSheepChild.animationId = child.getElementsByTagName('next')[0].textContent;
+                eSheepChild.setPosition(
+                    evaluate(child.getElementsByTagName('x')[0].textContent, eSheepChild),
+                    evaluate(child.getElementsByTagName('y')[0].textContent, eSheepChild),
+                    true,
+                );
+                eSheepChild.Start(this.animationFile);
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     /*
      * Check if sheep is walking over a defined HTML TAG-element
