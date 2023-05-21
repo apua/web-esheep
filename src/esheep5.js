@@ -492,36 +492,24 @@ class eSheep {
     /*
      * Check if sheep is walking over a defined HTML TAG-element
      */
-  _checkOverlapping()
-  {
-    var x = this.imageX;
-    var y = this.imageY + this.imageH;
-    var rect;
-    var margin = 20;
-    if(this.HTMLelement) margin = 5;
-    for(var index in COLLISION_WITH)
-    {
-      var els = document.body.getElementsByTagName(COLLISION_WITH[index]);
+    _checkOverlapping() {
+        console.assert(this.HTMLelement !== false);
+        const [x, y] = [this.imageX, this.imageY + this.imageH];
+        const margin = this.HTMLelement === null ? 20 : 5;
 
-      for(var i=0;i<els.length;i++)
-      {
-        rect = els[i].getBoundingClientRect();
-
-        if(y > rect.top - 2 && y < rect.top + margin)
-        {
-          if(x > rect.left && x < rect.right - this.imageW)
-          {
-            var style = window.getComputedStyle(els[i]);
-            if((style.borderTopStyle != "" && style.borderTopStyle != "none") && style.display != "none")
-            {
-              return els[i];
-            }
-          }
-        }
-      }
+        const elm = [...document.querySelectorAll(COLLISION_WITH)]
+            .find(elm => {
+                const rect = elm.getBoundingClientRect();
+                const style = window.getComputedStyle(elm);
+                return y > rect.top - 2 && y < rect.top + margin
+                    && x > rect.left && x < rect.right - this.imageW
+                    && (style.borderTopStyle != "" && style.borderTopStyle != "none" && style.display != "none");
+            });
+        if (elm !== undefined)
+            return elm;
+        else
+            return false;
     }
-    return false;
-  }
 
     /*
      * Next step (each frame is a step)
