@@ -1,6 +1,3 @@
-// TODO: setup a page to check each animation defined in XML
-
-
 function parseXml(xml) {
     const dom = (new DOMParser()).parseFromString(xml, 'text/xml');
 
@@ -82,13 +79,13 @@ function parseXml(xml) {
 }
 
 
-async function fromUri(xmlPath) {
+export async function fromUri(xmlPath) {
     const resp = await fetch(xmlPath);
     return parseXml(await resp.text());
 }
 
 
-async function listPetSources() {
+export async function listPetSources() {
     const ref = 'https://adrianotiger.github.io/desktopPet/Pets/pets.json';
     const petSrc = folder => `https://adrianotiger.github.io/desktopPet/Pets/${folder}/animations.xml`;
     const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
@@ -100,6 +97,4 @@ async function listPetSources() {
 // Main
 (async () => {
     await fromUri('animation.xml');
-    for (const uri of (await listPetSources()).values())
-        console.log(await fromUri(uri));
 })();

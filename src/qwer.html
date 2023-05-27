@@ -1,41 +1,61 @@
 <!--
-  Goal: learn how it detect edge
+  TODO:
+
+  - learn how it detect edge
+  - setup a page to check each animation defined in XML
 -->
 
 <meta charset="utf-8">
 
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<hr>
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<p>...<p>
-<hr>
-
 <style>
-html { color-scheme: dark; }
+  html {
+    color-scheme: dark;
+    font-family: system-ui;
+  }
 </style>
 
 <script type="module">
-import "./esheep5.1.js";
+  import { fromUri, listPetSources } from "./esheep5.1.js";
+
+  pets.addEventListener('input', async event => {
+    const aniMap = await fromUri(event.target.value);
+    while (animationsOfPet.options.length)
+      animationsOfPet.options[0].remove();
+    animationsOfPet.append(...aniMap.get('animations').map(ani => {
+      const opt = document.createElement('option');
+      opt.label = `${ani.get('id')} ${ani.get('name')}`;
+      opt.value = ani.get('id');
+      return opt;
+    }));
+  });
+
+  listPetSources().then(petsMap => {
+    pets.append(...[...petsMap.entries()].map(
+      ([k, v]) => {
+        const opt = document.createElement('option');
+        opt.label = k;
+        opt.value = v;
+        return opt;
+      }
+    ))
+
+    // Select esheep64
+    pets.children[1].selected = true;
+    pets.dispatchEvent(new Event('input'));
+  });
+
+  //import eSheep from "./esheep.js";
+  ////(new eSheep({allowPets: "all"})).Start('https://adrianotiger.github.io/desktopPet/Pets/blue_sheep/animations.xml');
+
+  //import eSheep from "./esheep5.js";
+  //(new eSheep()).Start();
+  //(new eSheep({allowPets: "all"})).Start('https://adrianotiger.github.io/desktopPet/Pets/yellow_sheep/animations.xml');
 </script>
 
-<!--
-<script type="module">
-import eSheep from "./esheep.js";
-//(new eSheep({allowPets: "all"})).Start('https://adrianotiger.github.io/desktopPet/Pets/blue_sheep/animations.xml');
-</script>
+<fieldset><legend>Select a pet</legend>
+<select id="pets"></select>
+</fieldset>
 
-<script type="module">
-import eSheep from "./esheep5.js";
-(new eSheep()).Start();
-(new eSheep({allowPets: "all"})).Start('https://adrianotiger.github.io/desktopPet/Pets/yellow_sheep/animations.xml');
-</script>
--->
+<fieldset><legend>Select a animation</legend>
+<select id="animationsOfPet"></select>
+</fieldset>
