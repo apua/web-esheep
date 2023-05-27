@@ -75,6 +75,7 @@ function parseXml(xml) {
             })
         : null
     ]));
+
     return dict;
 }
 
@@ -86,6 +87,8 @@ export async function fromUri(xmlPath) {
 
 
 export async function listPetSources() {
+    return new Map([['esheep64', './animation.xml']]);
+
     const ref = 'https://adrianotiger.github.io/desktopPet/Pets/pets.json';
     const petSrc = folder => `https://adrianotiger.github.io/desktopPet/Pets/${folder}/animations.xml`;
     const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
@@ -95,6 +98,7 @@ export async function listPetSources() {
 
 
 // Main
-(async () => {
+async function main() {
     await fromUri('animation.xml');
-})();
+}
+//main()

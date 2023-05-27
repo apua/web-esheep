@@ -5,7 +5,9 @@
   - setup a page to check each animation defined in XML
 -->
 
+<!DOCTYPE html>
 <meta charset="utf-8">
+<link rel="icon" href="#">
 
 <style>
   html {
@@ -18,15 +20,18 @@
   import { fromUri, listPetSources } from "./esheep5.1.js";
 
   pets.addEventListener('input', async event => {
-    const aniMap = await fromUri(event.target.value);
-    while (animationsOfPet.options.length)
-      animationsOfPet.options[0].remove();
-    animationsOfPet.append(...aniMap.get('animations').map(ani => {
+    const dict = await fromUri(event.target.value);
+
+    const arrAnimations = [...dict.get('animations')];
+    petAnimations.replaceChildren(...arrAnimations.map(ani => {
       const opt = document.createElement('option');
       opt.label = `${ani.get('id')} ${ani.get('name')}`;
       opt.value = ani.get('id');
       return opt;
     }));
+
+    const spriteData = dict.get('image').get('png');
+    petSprite.src = `data:image/png;base64,${spriteData}`;
   });
 
   listPetSources().then(petsMap => {
@@ -37,10 +42,10 @@
         opt.value = v;
         return opt;
       }
-    ))
+    ));
 
     // Select esheep64
-    pets.children[1].selected = true;
+    [...pets.children].find(elm => elm.label == 'esheep64').selected = true;
     pets.dispatchEvent(new Event('input'));
   });
 
@@ -57,5 +62,13 @@
 </fieldset>
 
 <fieldset><legend>Select a animation</legend>
-<select id="animationsOfPet"></select>
+<select id="petAnimations"></select>
+</fieldset>
+
+<fieldset><legend>Animation</legend>
+<img id="animation"></img>
+</fieldset>
+
+<fieldset><legend>Sprite</legend>
+<img id="petSprite">
 </fieldset>
