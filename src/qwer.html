@@ -25,22 +25,22 @@
       h: sprite.height / dict.get('image').get('tilesy'),
     };
 
-    const ani01Img = sprite.cloneNode();
-    ani01Img.removeAttribute('id');
-    ani01Img.hidden = false;
-    ani01Img.style.position = 'relative';
-    ani01.append(ani01Img);
     ani01.style.width = `${imageSize.w}px`;
     ani01.style.height = `${imageSize.h}px`;
     ani01.style.overflow = 'hidden';
+    ani01Img.src = sprite.src;
+    ani01Img.style.imageRendering = 'crisp-edges';
+    ani01Img.style.position = 'relative';
     ani01Img.style.left = `-${10 * imageSize.w}px`;
     ani01Img.style.top = `-${9 * imageSize.h}px`;
 
+    ani02.style.imageRendering = 'crisp-edges';
     ani02.style.width = `${imageSize.w}px`;
     ani02.style.height = `${imageSize.h}px`;
     ani02.style.backgroundImage = `url("${sprite.src}")`;
     ani02.style.backgroundPosition = `-${10 * imageSize.w}px -${9 * imageSize.h}px`;
 
+    ani03.style.imageRendering = 'crisp-edges';
     ani03.style.width = `${imageSize.w}px`;
     ani03.style.height = `${imageSize.h}px`;
     ani03.src = sprite.src;
@@ -96,7 +96,7 @@
 
 <fieldset><legend>The animation</legend>
   <p>Parent hides overflow</p>
-  <div id="ani01"></div>
+  <div id="ani01"><img id="ani01Img"></div>
   <hr>
   <p>Set background image</p>
   <div id="ani02"></div>
@@ -107,5 +107,5 @@
 
 <fieldset><legend>The sprite source</legend>
 <div><button onclick="petSprite.toggleAttribute('hidden')">Toggle hidden</button></div>
-<img id="petSprite" hidden>
+<img id="petSprite" style='image-rendering: crisp-edges' hidden>
 </fieldset>
