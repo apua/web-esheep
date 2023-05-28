@@ -35,6 +35,11 @@
     ani01.style.overflow = 'hidden';
     ani01Img.style.left = `-${10 * imageSize.w}px`;
     ani01Img.style.top = `-${9 * imageSize.h}px`;
+
+    ani02.style.width = `${imageSize.w}px`;
+    ani02.style.height = `${imageSize.h}px`;
+    ani02.style.backgroundImage = `url("${sprite.src}")`;
+    ani02.style.backgroundPosition = `-${10 * imageSize.w}px -${9 * imageSize.h}px`;
   }
 
   pets.addEventListener('input', async event => {
@@ -85,6 +90,8 @@
 
 <fieldset><legend>The animation</legend>
   <div id="ani01"></div>
+  <hr>
+  <div id="ani02"></div>
 </fieldset>
 
 <fieldset><legend>The sprite source</legend>
