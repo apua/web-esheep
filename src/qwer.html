@@ -19,6 +19,24 @@
 <script type="module">
   import { fromUri, listPetSources } from "./esheep5.1.js";
 
+  function setAnimation(sprite, dict) {
+    const imageSize = {
+      w: sprite.width / dict.get('image').get('tilesx'),
+      h: sprite.height / dict.get('image').get('tilesy'),
+    };
+
+    const ani01Img = sprite.cloneNode();
+    ani01Img.removeAttribute('id');
+    ani01Img.hidden = false;
+    ani01Img.style.position = 'relative';
+    ani01.append(ani01Img);
+    ani01.style.width = `${imageSize.w}px`;
+    ani01.style.height = `${imageSize.h}px`;
+    ani01.style.overflow = 'hidden';
+    ani01Img.style.left = `-${10 * imageSize.w}px`;
+    ani01Img.style.top = `-${9 * imageSize.h}px`;
+  }
+
   pets.addEventListener('input', async event => {
     const dict = await fromUri(event.target.value);
 
@@ -30,8 +48,8 @@
       return opt;
     }));
 
-    const spriteData = dict.get('image').get('png');
-    petSprite.src = `data:image/png;base64,${spriteData}`;
+    petSprite.addEventListener('load', event => setAnimation(event.target, dict));
+    petSprite.src = `data:image/png;base64,${dict.get('image').get('png')}`;
   });
 
   listPetSources().then(petsMap => {
@@ -65,10 +83,11 @@
 <select id="petAnimations"></select>
 </fieldset>
 
-<fieldset><legend>Animation</legend>
-<img id="animation"></img>
+<fieldset><legend>The animation</legend>
+  <div id="ani01"></div>
 </fieldset>
 
-<fieldset><legend>Sprite</legend>
-<img id="petSprite">
+<fieldset><legend>The sprite source</legend>
+<div><button onclick="petSprite.toggleAttribute('hidden')">Toggle hidden</button></div>
+<img id="petSprite" hidden>
 </fieldset>
