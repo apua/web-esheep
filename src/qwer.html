@@ -33,6 +33,11 @@
     ani01Img.style.position = 'relative';
     ani01Img.style.left = `-${10 * imageSize.w}px`;
     ani01Img.style.top = `-${9 * imageSize.h}px`;
+    const ani01Run = (x = 0) => {
+      ani01Img.style.left = `-${(10 + x) * imageSize.w}px`;
+      setTimeout(() => ani01Run(x^1), 250);
+    };
+    ani01Run();
 
     ani02.style.imageRendering = 'crisp-edges';
     ani02.style.width = `${imageSize.w}px`;
