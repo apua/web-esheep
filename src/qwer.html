@@ -19,11 +19,6 @@
     to { background-position: -480px -360px; }
   }
   .runningBg { animation: runningBgFrames 0.5s steps(2) infinite; }
-  @keyframes runningObjFrames {
-    from{ object-position: -400px -360px; }
-    to { object-position: -480px -360px; }
-  }
-  .runningObj { animation: runningObjFrames 0.5s steps(2) infinite; }
 </style>
 
 <script type="module">
@@ -72,7 +67,14 @@
     ani03.src = sprite.src;
     ani03.style.objectFit = 'none';
     ani03.style.objectPosition = `-${10 * imageSize.w}px -${9 * imageSize.h}px`;
-    ani03.classList.add('runningObj');
+    ani03.animate([
+      { objectPosition: '-400px -360px' },
+      { objectPosition: '-480px -360px' },
+    ], {
+      duration: 500,
+      easing: 'steps(2)',
+      iterations: Infinity,
+    });
   }
 
   pets.addEventListener('input', async event => {
