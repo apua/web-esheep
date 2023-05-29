@@ -33,11 +33,21 @@
     ani01Img.style.position = 'relative';
     ani01Img.style.left = `-${10 * imageSize.w}px`;
     ani01Img.style.top = `-${9 * imageSize.h}px`;
-    const ani01Run = (x = 0) => {
+    const ani01Run01 = (x = 0) => {
       ani01Img.style.left = `-${(10 + x) * imageSize.w}px`;
-      setTimeout(() => ani01Run(x^1), 250);
+      setTimeout(() => ani01Run01(x^1), 250);
     };
-    ani01Run();
+    //ani01Run01();
+    let last = 0, x = 0;
+    const ani01Run02 = (timestamp) => {
+      if ((timestamp - last) > 250) {
+        last = timestamp;
+        x ^= 1;
+        ani01Img.style.left = `-${(10 + x) * imageSize.w}px`;
+      }
+      window.requestAnimationFrame(ani01Run02);
+    };
+    ani01Run02();
 
     ani02.style.imageRendering = 'crisp-edges';
     ani02.style.width = `${imageSize.w}px`;
