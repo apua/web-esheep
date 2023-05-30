@@ -82,9 +82,10 @@ async function animate(id, dict, imageSize) {
     const ani = dict.get('animations').find(elm => elm.get('id') == id);
     const seq = ani.get('sequence');
     const arrFrame = seq.get('frame').map(Number);
+    console.log(seq.get('repeat'), 123);  // "random/5+10"
     const repeat = Number(seq.get('repeat'));
     const repeatfrom = Number(seq.get('repeatfrom'));
-    const interval = {
+    const delay = {
         start: Number(ani.get('start').get('interval')),
         end: Number(ani.get('end').get('interval')),
     };
@@ -99,19 +100,21 @@ async function animate(id, dict, imageSize) {
         };
         return `-${pos.y * imageSize.h}px -${pos.x * imageSize.w}px`;
     };
-    const ani01Run03 = (iterSteps) => {
+    const lenSteps = arrFrame.length + (arrFrame.length - repeatfrom) * repeat;
+    console.log('rrrr', repeatfrom, repeat);
+    //console.log(delay.end, delay.start, '??', lenSteps);
+    const delayDelta = (delay.end - delay.start) / lenSteps;
+    console.log(delayDelta);
+    const ani01Run03 = (iterSteps, delay, delayDelta) => {
         const n = iterSteps.next();
         if (!n.done) {
             ani01Img.style.inset = toPos(n.value);
-            setTimeout(() => ani01Run03(iterSteps), 250);
+            console.log('???', delay, delayDelta);
+            setTimeout(() => ani01Run03(iterSteps, delay+delayDelta, delayDelta), delay);
         } else console.log('done');
     };
-    //const arr = [...iterSteps(arrFrame, repeat, repeatfrom)]; console.log('steps length:', arr.length, arr);
-    ani01Run03(iterSteps(arrFrame, repeat, repeatfrom));
-
-    const del1 = ani.get('start').get('interval'), del2 = ani.get('end').get('interval');
-    console.log([del1, del2].map(Number));
-    window.dict = dict;
+    console.log(delay);
+    ani01Run03(iterSteps(arrFrame, repeat, repeatfrom), delay.start, delayDelta);
 }
 
 pets.addEventListener('input', async event => {
