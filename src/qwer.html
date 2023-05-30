@@ -88,12 +88,26 @@
       start: Number(ani.get('start').get('interval')),
       end: Number(ani.get('end').get('interval')),
     };
-    function* iterSteps(arr, repeat, repeatfrom=0) {
-      yield* arr;
-      yield* repeat ? iterSteps(arr.slice(repeatfrom), repeat-1) : [];
+    function* iterSteps(arrFrame, repeat, repeatfrom=0) {
+      yield* arrFrame;
+      yield* repeat ? iterSteps(arrFrame.slice(repeatfrom), repeat-1) : [];
     }
-    const arrSteps = [...iterSteps(arrFrame, repeat, repeatfrom)];
-    console.log(arrSteps);
+    const toPos = idx => {
+      const pos = {
+        x: idx % dict.get('image').get('tilesx'),
+        y: idx / dict.get('image').get('tilesx') | 0,
+      };
+      return `-${pos.y * imageSize.h}px -${pos.x * imageSize.w}px`;
+    };
+    const ani01Run03 = (iterSteps) => {
+      const n = iterSteps.next();
+      if (!n.done) {
+        ani01Img.style.inset = toPos(n.value);
+        setTimeout(() => ani01Run03(iterSteps), 250);
+      } else console.log('done');
+    };
+    //const arr = [...iterSteps(arrFrame, repeat, repeatfrom)]; console.log('steps length:', arr.length, arr);
+    ani01Run03(iterSteps(arrFrame, repeat, repeatfrom));
   }
 
   pets.addEventListener('input', async event => {
