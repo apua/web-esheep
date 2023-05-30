@@ -79,9 +79,21 @@
   }
 
   async function animate(id, dict, imageSize) {
-    //ani01Img.style.left = `-${10 * imageSize.w}px`;
-    //ani01Img.style.top = `-${9 * imageSize.h}px`;
-    console.log(id);
+    const ani = dict.get('animations').find(elm => elm.get('id') == id);
+    const seq = ani.get('sequence');
+    const arrFrame = seq.get('frame').map(Number);
+    const repeat = Number(seq.get('repeat'));
+    const repeatfrom = Number(seq.get('repeatfrom'));
+    const interval = {
+      start: Number(ani.get('start').get('interval')),
+      end: Number(ani.get('end').get('interval')),
+    };
+    function* iterSteps(arr, repeat, repeatfrom=0) {
+      yield* arr;
+      yield* repeat ? iterSteps(arr.slice(repeatfrom), repeat-1) : [];
+    }
+    const arrSteps = [...iterSteps(arrFrame, repeat, repeatfrom)];
+    console.log(arrSteps);
   }
 
   pets.addEventListener('input', async event => {
