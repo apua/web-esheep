@@ -184,3 +184,20 @@ listPetSources().then(petsMap => {
 <div><button onclick="petSprite.toggleAttribute('hidden')">Toggle hidden</button></div>
 <img id="petSprite" style='image-rendering: crisp-edges' hidden>
 </fieldset>
+
+<script type="module">
+import eSheep from './esheep5.js'; (new eSheep()).start();
+</script>
+
+<script type="module">
+document.body.addEventListener('keydown', event => {
+  const s = petAnimations;
+  if (event.key == 'ArrowDown' && s.selectedIndex < s.options.length-1) {
+    s.selectedIndex += 1;
+    s.dispatchEvent(new Event('input'));
+  } else if (event.key == 'ArrowUp' && s.selectedIndex > 0) {
+    s.selectedIndex -= 1;
+    s.dispatchEvent(new Event('input'));
+  } else {}
+});
+</script>

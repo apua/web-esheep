@@ -1,5 +1,5 @@
 const VERSION = '0.9.2';              // web eSheep version
-const ACTIVATE_DEBUG = true;         // show log on console
+const ACTIVATE_DEBUG = false;         // show log on console
 const DEFAULT_XML = 'animation.xml'; // default XML animation
 //const DEFAULT_XML = "https://adrianotiger.github.io/desktopPet/Pets/esheep64/animations.xml"; // default XML animation
 const COLLISION_WITH = ["div", "hr"]; // elements on page to detect for collisions
