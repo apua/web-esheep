@@ -45,13 +45,13 @@ function getScreen() {
             window.innerWidth: ${window.innerWidth}
             document.documentElement.clientWidth: ${document.documentElement.clientWidth}`,
         );
+        console.assert(window.innerHeight == document.documentElement.clientHeight, `
+            window.innerHeight: ${window.innerHeight}
+            document.documentElement.clientHeight: ${document.documentElement.clientHeight}`,
+        );
         console.assert(window.innerWidth == document.body.clientWidth, `
             window.innerWidth: ${window.innerWidth}
             document.body.clientWidth: ${document.body.clientWidth}`,
-        );
-        console.assert(window.innerHeight == document.body.clientHeight, `
-            window.innerHeight: ${window.innerHeight}
-            document.body.clientHeight: ${document.body.clientHeight}`,
         );
         console.assert(window.innerHeight == document.body.clientHeight, `
             window.innerHeight: ${window.innerHeight}
