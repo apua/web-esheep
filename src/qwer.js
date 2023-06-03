@@ -1,4 +1,4 @@
-import { fromUri, listPetSources } from "./esheep5.1.js";
+import { evaluate, fromUri, listPetSources } from "./esheep5.1.js";
 
 
 /*
@@ -66,13 +66,12 @@ async function setPetSprite(dict) {
 async function animate01(id, dict, imageSize) {
     const ani = dict.get('animations').find(elm => elm.get('id') == id);
     const seq = ani.get('sequence');
-    const arrFrame = seq.get('frame').map(Number);
-    console.log(seq.get('repeat'), 123);  // "random/5+10"
-    const repeat = Number(seq.get('repeat'));
-    const repeatfrom = Number(seq.get('repeatfrom'));
+    const arrFrame = seq.get('frame').map(evaluate);
+    const repeat = evaluate(seq.get('repeat'));
+    const repeatfrom = evaluate(seq.get('repeatfrom')) | 0;
     const delay = {
-        start: Number(ani.get('start').get('interval')),
-        end: Number(ani.get('end').get('interval')),
+        start: evaluate(ani.get('start').get('interval')),
+        end: evaluate(ani.get('end').get('interval')),
     };
     function* iterSteps(arrFrame, repeat, repeatfrom=0) {
         yield* arrFrame;
@@ -96,7 +95,9 @@ async function animate01(id, dict, imageSize) {
             ani01Img.style.inset = toPos(n.value);
             console.log('???', delay, delayDelta);
             setTimeout(() => ani01Run03(iterSteps, delay+delayDelta, delayDelta), delay);
-        } else console.log('done');
+        } else {
+            console.log('done');
+        }
     };
     console.log(delay);
     ani01Run03(iterSteps(arrFrame, repeat, repeatfrom), delay.start, delayDelta);
@@ -166,5 +167,6 @@ document.body.addEventListener('keydown', event => {
     } else if (event.key == 'ArrowUp' && s.selectedIndex > 0) {
         s.selectedIndex -= 1;
         s.dispatchEvent(new Event('input'));
-    } else {}
+    } else {
+    }
 });

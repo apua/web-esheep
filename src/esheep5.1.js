@@ -97,6 +97,21 @@ export async function listPetSources() {
 }
 
 
+export function evaluate(str) {
+    const value = Number(str);
+    if (!Number.isNaN(value))
+        return value;
+
+    const code = str.replace(/random/g, Math.random()*100);
+    try {
+        return eval(code);
+    } catch (error) {
+        console.error(error, `str: ${str}, code: ${code}`);
+        return 0;
+    }
+}
+
+
 // Main
 async function main() {
     await fromUri('animation.xml');
