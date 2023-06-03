@@ -136,10 +136,34 @@ async function setAnimationSelector(dict) {
 }
 
 
+async function setAnimationList(dict) {
+    const img = dict.get('img');
+    animationList.append(...[...dict.get('animations')].map(ani => {
+        const temp = document.createElement('template');
+        temp.innerHTML = `<tr><td>${ani.get('id')} ${ani.get('name')}</td><td></td><td></td></tr>`;
+        temp.content.querySelector('td:nth-child(2)').append(img.cloneNode());
+        temp.content.querySelector('img').dataset.id = ani.get('id');
+        return temp.content;
+    }));
+    animationList.querySelectorAll('img').forEach(img => {
+        const spec = dict.getSpecById(img.dataset.id);
+        img.animate([
+            { objectPosition: '-400px -360px' },
+            { objectPosition: '-480px -360px' },
+        ], {
+            duration: 500,
+            easing: 'steps(2)',
+            iterations: Infinity,
+        });
+    });
+}
+
+
 petSelector.addEventListener('input', async event => {
     const dict = await fromUri(event.target.value);
     setPetSprite(dict);
     setAnimationSelector(dict);
+    setAnimationList(dict);
 });
 
 

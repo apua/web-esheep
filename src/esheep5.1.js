@@ -80,9 +80,52 @@ function parseXml(xml) {
 }
 
 
+export function evaluate(str) {
+    const value = Number(str);
+    if (!Number.isNaN(value))
+        return value;
+
+    console.debug(str);
+    const code = str.replace(/random/g, Math.random()*100);
+    try {
+        return eval(code);
+    } catch (error) {
+        console.error(error, `str: ${str}, code: ${code}`);
+        return 0;
+    }
+}
+
+
 export async function fromUri(xmlPath) {
     const resp = await fetch(xmlPath);
-    return parseXml(await resp.text());
+    const dict = parseXml(await resp.text());
+
+    {  // setImg
+        console.assert(!dict.has('img'));
+        const img = document.createElement('img');
+        img.src = `data:image/png;base64,${dict.get('image').get('png')}`;
+        await new Promise(resolve => img.addEventListener('load', resolve, {once: true}));
+        const width = img.width / dict.get('image').get('tilesx');
+        const height = img.height / dict.get('image').get('tilesy');
+        img.style = `width: ${width}px; height: ${height}px; image-rendering: crisp-edges; object-fit: none`;
+        dict.set('img', img);
+    }
+
+    dict.getSpecById = function (id) {
+        const animation = this.get('animations').find(elm => elm.get('id') == id);
+
+        const frames = animation.get('sequence').get('frame').map(evaluate);
+        const repeat = evaluate(animation.get('sequence').get('repeat'));
+        const repeatfrom = evaluate(animation.get('sequence').get('repeatfrom')) | 0;
+        const delay = {
+            start: evaluate(animation.get('start').get('interval')),
+            end: evaluate(animation.get('end').get('interval')),
+        };
+
+        return {};
+    }
+
+    return dict;
 }
 
 
@@ -94,21 +137,6 @@ export async function listPetSources() {
     const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
     const json = await resp.json();
     return new Map(json.pets.map(obj => [obj.folder, petSrc(obj.folder)]));
-}
-
-
-export function evaluate(str) {
-    const value = Number(str);
-    if (!Number.isNaN(value))
-        return value;
-
-    const code = str.replace(/random/g, Math.random()*100);
-    try {
-        return eval(code);
-    } catch (error) {
-        console.error(error, `str: ${str}, code: ${code}`);
-        return 0;
-    }
 }
 
 
