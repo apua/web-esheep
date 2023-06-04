@@ -119,7 +119,7 @@ export async function fromUri(xmlPath) {
         const code = str
             .replace(/random/g, Math.random()*100)
             .replace(/screenW|areaW/g, window.innerWidth)
-            .replace(/screenHW|areaH/g, window.innerHeight)
+            .replace(/screenH|areaH/g, window.innerHeight)
             .replace(/randS/g, this.get('seed'))
             .replace(/imageW/g, this.get('img').width)
             .replace(/imageH/g, this.get('img').height)
