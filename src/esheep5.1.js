@@ -80,22 +80,6 @@ function parseXml(xml) {
 }
 
 
-export function evaluate(str) {
-    const value = Number(str);
-    if (!Number.isNaN(value))
-        return value;
-
-    console.debug(str);
-    const code = str.replace(/random/g, Math.random()*100);
-    try {
-        return eval(code);
-    } catch (error) {
-        console.error(error, `str: ${str}, code: ${code}`);
-        return 0;
-    }
-}
-
-
 export async function fromUri(xmlPath) {
     const resp = await fetch(xmlPath);
     const dict = parseXml(await resp.text());
@@ -114,15 +98,42 @@ export async function fromUri(xmlPath) {
     dict.getSpecById = function (id) {
         const animation = this.get('animations').find(elm => elm.get('id') == id);
 
-        const frames = animation.get('sequence').get('frame').map(evaluate);
-        const repeat = evaluate(animation.get('sequence').get('repeat'));
-        const repeatfrom = evaluate(animation.get('sequence').get('repeatfrom')) | 0;
+        const frames = animation.get('sequence').get('frame').map(dict.evaluate);
+        const repeat = dict.evaluate(animation.get('sequence').get('repeat'));
+        const repeatfrom = dict.evaluate(animation.get('sequence').get('repeatfrom')) | 0;
         const delay = {
-            start: evaluate(animation.get('start').get('interval')),
-            end: evaluate(animation.get('end').get('interval')),
+            start: dict.evaluate(animation.get('start').get('interval')),
+            end: dict.evaluate(animation.get('end').get('interval')),
         };
 
         return {};
+    }
+
+    dict.set('seed', Math.random() * 100);
+    dict.evaluate = function (str) {
+        const value = Number(str);
+        if (!Number.isNaN(value))
+            return value;
+
+        console.debug(str);
+        const code = str
+            .replace(/random/g, Math.random()*100)
+            .replace(/screenW|areaW/g, window.innerWidth)
+            .replace(/screenHW|areaH/g, window.innerHeight)
+            .replace(/randS/g, this.get('seed'))
+            .replace(/imageW/g, this.get('img').width)
+            .replace(/imageH/g, this.get('img').height)
+            //.replace(/imageX/g, sheep.imageX)
+            //.replace(/imageY/g, sheep.imageY)
+            .replace(/Convert\((.*),System.Int32\)/, '$1')
+            ;
+
+        try {
+            return eval(code);
+        } catch (error) {
+            console.error(error, `str: ${str}, code: ${code}`);
+            return 0;
+        }
     }
 
     return dict;

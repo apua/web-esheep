@@ -1,4 +1,4 @@
-import { evaluate, fromUri, listPetSources } from "./esheep5.1.js";
+import { fromUri, listPetSources } from "./esheep5.1.js";
 
 
 /*
@@ -66,12 +66,12 @@ async function setPetSprite(dict) {
 async function animate01(id, dict, imageSize) {
     const ani = dict.get('animations').find(elm => elm.get('id') == id);
     const seq = ani.get('sequence');
-    const arrFrame = seq.get('frame').map(evaluate);
-    const repeat = evaluate(seq.get('repeat'));
-    const repeatfrom = evaluate(seq.get('repeatfrom')) | 0;
+    const arrFrame = seq.get('frame').map(dict.evaluate);
+    const repeat = dict.evaluate(seq.get('repeat'));
+    const repeatfrom = dict.evaluate(seq.get('repeatfrom')) | 0;
     const delay = {
-        start: evaluate(ani.get('start').get('interval')),
-        end: evaluate(ani.get('end').get('interval')),
+        start: dict.evaluate(ani.get('start').get('interval')),
+        end: dict.evaluate(ani.get('end').get('interval')),
     };
     function* iterSteps(arrFrame, repeat, repeatfrom=0) {
         yield* arrFrame;
