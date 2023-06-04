@@ -137,7 +137,7 @@ async function setAnimationSelector(dict) {
 
 async function setAnimationList(dict) {
     const img = dict.get('img');
-    animationList.append(...[...dict.get('animations')].map(ani => {
+    animationList.replaceChildren(...[...dict.get('animations')].map(ani => {
         const temp = document.createElement('template');
         temp.innerHTML = `<tr><td>${ani.get('id')} ${ani.get('name')}</td><td></td><td></td></tr>`;
         temp.content.querySelector('td:nth-child(2)').append(img.cloneNode());
