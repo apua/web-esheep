@@ -1,4 +1,4 @@
-import { fromUri, listPetSources } from "./esheep5.1.js";
+import { fromUri, listPetSources, startAnimation } from "./esheep5.1.js";
 
 
 /*
@@ -67,8 +67,8 @@ async function animate01(id, dict, imageSize) {
     const ani = dict.get('animations').find(elm => elm.get('id') == id);
     const seq = ani.get('sequence');
     const arrFrame = seq.get('frame').map(dict.evaluate);
-    const repeat = dict.evaluate(seq.get('repeat'));
-    const repeatfrom = dict.evaluate(seq.get('repeatfrom')) | 0;
+    const repeat = dict.evaluate(seq.get('repeat')) | 0;
+    const repeatfrom = dict.evaluate(seq.get('repeatfrom'));
     const delay = {
         start: dict.evaluate(ani.get('start').get('interval')),
         end: dict.evaluate(ani.get('end').get('interval')),
@@ -85,21 +85,20 @@ async function animate01(id, dict, imageSize) {
         return `-${pos.y * imageSize.h}px -${pos.x * imageSize.w}px`;
     };
     const lenSteps = arrFrame.length + (arrFrame.length - repeatfrom) * repeat;
-    console.log('rrrr', repeatfrom, repeat);
-    //console.log(delay.end, delay.start, '??', lenSteps);
+    //console.log('rrrr', repeatfrom, repeat);
     const delayDelta = (delay.end - delay.start) / lenSteps;
-    console.log(delayDelta);
+    //console.log(delayDelta);
     const ani01Run03 = (iterSteps, delay, delayDelta) => {
         const n = iterSteps.next();
         if (!n.done) {
             ani01Img.style.inset = toPos(n.value);
-            console.log('???', delay, delayDelta);
+            //console.log('???', n.value, delay, delayDelta);
             setTimeout(() => ani01Run03(iterSteps, delay+delayDelta, delayDelta), delay);
         } else {
             console.log('done');
         }
     };
-    console.log(delay);
+    //console.log(delay);
     ani01Run03(iterSteps(arrFrame, repeat, repeatfrom), delay.start, delayDelta);
 }
 
@@ -142,20 +141,18 @@ async function setAnimationList(dict) {
         const temp = document.createElement('template');
         temp.innerHTML = `<tr><td>${ani.get('id')} ${ani.get('name')}</td><td></td><td></td></tr>`;
         temp.content.querySelector('td:nth-child(2)').append(img.cloneNode());
-        temp.content.querySelector('img').dataset.id = ani.get('id');
+        const spec = dict.getSpecById(ani.get('id'));
+        if (spec.delay.start != spec.delay.end)
+            temp.content.querySelector('td:nth-child(3)').textContent = [
+              `[${spec.repeatfrom},${spec.repeat}]`,
+              `[${spec.frames}]`,
+              `[${spec.delay.start},${spec.delay.end}]`,
+            ].join(' ');
+        temp.content.querySelector('img').spec = spec;
+        temp.content.querySelector('img').dict = dict;
         return temp.content;
     }));
-    animationList.querySelectorAll('img').forEach(img => {
-        const spec = dict.getSpecById(img.dataset.id);
-        img.animate([
-            { objectPosition: '-400px -360px' },
-            { objectPosition: '-480px -360px' },
-        ], {
-            duration: 500,
-            easing: 'steps(2)',
-            iterations: Infinity,
-        });
-    });
+    animationList.querySelectorAll('img').forEach(startAnimation);
 }
 
 

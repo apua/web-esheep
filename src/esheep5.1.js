@@ -97,16 +97,16 @@ export async function fromUri(xmlPath) {
 
     dict.getSpecById = function (id) {
         const animation = this.get('animations').find(elm => elm.get('id') == id);
-
-        const frames = animation.get('sequence').get('frame').map(dict.evaluate);
-        const repeat = dict.evaluate(animation.get('sequence').get('repeat'));
-        const repeatfrom = dict.evaluate(animation.get('sequence').get('repeatfrom')) | 0;
-        const delay = {
-            start: dict.evaluate(animation.get('start').get('interval')),
-            end: dict.evaluate(animation.get('end').get('interval')),
+        return {
+            id: id,
+            frames: animation.get('sequence').get('frame').map(dict.evaluate),
+            repeat: dict.evaluate(animation.get('sequence').get('repeat')) | 0,
+            repeatfrom: dict.evaluate(animation.get('sequence').get('repeatfrom')),
+            delay: {
+                start: dict.evaluate(animation.get('start').get('interval')),
+                end: dict.evaluate(animation.get('end').get('interval')),
+            },
         };
-
-        return {};
     }
 
     dict.set('seed', Math.random() * 100);
@@ -148,6 +148,39 @@ export async function listPetSources() {
     const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
     const json = await resp.json();
     return new Map(json.pets.map(obj => [obj.folder, petSrc(obj.folder)]));
+}
+
+
+export function startAnimation(elm) {
+    const spec = elm.spec, dict = elm.dict;
+    const img = dict.get('img'), w = Number.parseInt(img.style.width), h = Number.parseInt(img.style.height);
+    const rowLen = Number(dict.get('image').get('tilesx'));
+    const delayDelta = (spec.delay.end - spec.delay.start)
+        / spec.frames.length + (spec.frames.length - spec.repeatfrom) * spec.repeat;
+    const pos = idx => {
+        const x = idx % rowLen;
+        const y = idx / rowLen | 0;
+        return `-${x * w}px -${y * h}px`;
+    };
+    function* steps(frames, repeat, repeatfrom=0) {
+        yield* frames;
+        yield* repeat ? steps(frames.slice(repeatfrom), repeat-1) : [];
+    }
+    //elm.parentElement.nextSibling.textContent = [
+    //    elm.spec.frames,
+    //    elm.spec.frames.map(pos),
+    //].join(' ');
+    const getStepsIter = () => steps(spec.frames, spec.repeat, spec.repeatfrom);
+    const draw = (stepsIter=getStepsIter(), delay=spec.delay.start) => {
+        const step = stepsIter.next();
+        if (step.done) {
+            draw();
+        } else {
+            elm.style.objectPosition = pos(step.value);
+            setTimeout(() => draw(stepsIter, delay+delayDelta), delay);
+        }
+    };
+    draw();
 }
 
 
