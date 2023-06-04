@@ -162,16 +162,12 @@ export function startAnimation(elm) {
         const y = idx / rowLen | 0;
         return `-${x * w}px -${y * h}px`;
     };
-    function* steps(frames, repeat, repeatfrom=0) {
-        yield* frames;
-        yield* repeat ? steps(frames.slice(repeatfrom), repeat-1) : [];
+    function* steps() {
+        yield* spec.frames;
+        for (const _ of Array(spec.repeat))
+            yield* spec.frames.slice(spec.repeatfrom);
     }
-    //elm.parentElement.nextSibling.textContent = [
-    //    elm.spec.frames,
-    //    elm.spec.frames.map(pos),
-    //].join(' ');
-    const getStepsIter = () => steps(spec.frames, spec.repeat, spec.repeatfrom);
-    const draw = (stepsIter=getStepsIter(), delay=spec.delay.start) => {
+    const draw = (stepsIter=steps(), delay=spec.delay.start) => {
         const step = stepsIter.next();
         if (step.done) {
             draw();
