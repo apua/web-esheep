@@ -178,10 +178,3 @@ export function startAnimation(elm) {
     };
     draw();
 }
-
-
-// Main
-async function main() {
-    await fromUri('animation.xml');
-}
-//main()
