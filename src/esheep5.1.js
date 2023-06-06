@@ -181,6 +181,7 @@ export function startAnimation(elm) {
 
 export class Sheep {
     static pk = 0;
+    static cache = {};
 
     constructor() {  // __init__
         const cls = this.constructor;
@@ -190,19 +191,19 @@ export class Sheep {
     }
 
     async useXml(xmlPath) {
-        const resp = await fetch(xmlPath);
-        const dict = parseXml(await resp.text());
+        const cls = this.constructor;
 
-        // init <img>
-        this.img.src = `data:image/png;base64,${dict.get('image').get('png')}`;
-        await new Promise(resolve => this.img.addEventListener('load', resolve, {once: true}));
-        const size = {
-            w: this.img.width / dict.get('image').get('tilesx'),
-            h: this.img.height / dict.get('image').get('tilesy'),
-        };
-        this.img.style = `width: ${size.w}px; height: ${size.h}px; image-rendering: crisp-edges; object-fit: none`;
+        if (xmlPath in cls.cache) {
+            this.conifg = Object.create(cls.cache[xmlPath]);
+            this.config.seed = Math.random() * 100;
+            await this.initImg(this.config.dict);
+            return;
+        }
 
+        const dict = await fetch(xmlPath).then(resp => resp.text()).then(parseXml);
+        const size = await this.initImg(dict);
         this.config = {
+            xmlPath: xmlPath,
             dict: dict,
             size: size,
             seed: Math.random() * 100,
@@ -216,6 +217,18 @@ export class Sheep {
                 },
             }])),
         };
+        cls.cache[xmlPath] = this.config;
+    }
+
+    async initImg(dict) {
+        this.img.src = `data:image/png;base64,${dict.get('image').get('png')}`;
+        await new Promise(resolve => this.img.addEventListener('load', resolve, {once: true}));
+        const size = {
+            w: this.img.width / dict.get('image').get('tilesx'),
+            h: this.img.height / dict.get('image').get('tilesy'),
+        };
+        this.img.style = `width: ${size.w}px; height: ${size.h}px; image-rendering: crisp-edges; object-fit: none`;
+        return size;
     }
 
     cleanEval(str) {
