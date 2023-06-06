@@ -8,14 +8,13 @@ petSelector.addEventListener('input', async event => {
     sheep.stopAnimation();
     [...animationList.querySelectorAll('img')].forEach(elm => elm.sheep.stopAnimation());
 
-    await sheep.useXml(xmlPath).then(self => self.startAnimation(31));
+    await sheep.useXml(xmlPath).then(self => self.startAnimation(1));
     // set petSprite
     petSprite.src = sheep.img.src;
     // re-create and list sheeps
     animationList.replaceChildren(...[...Object.entries(sheep.config.animations)].map(([id, a]) => {
         const sheep = new Sheep();
-        sheep.useXml(xmlPath);
-        sheep.startAnimation(id);
+        sheep.img.dataset.id = id;
 
         const temp = document.createElement('template');
         temp.innerHTML = `<tr><td>${id} ${a.name}</td><td></td><td></td></tr>`;
@@ -25,6 +24,9 @@ petSelector.addEventListener('input', async event => {
         ].join(' ');
         return temp.content;
     }));
+    [...animationList.querySelectorAll('img')].forEach(elm =>
+        elm.sheep.useXml(xmlPath).then(self => self.startAnimation(elm.dataset.id))
+    );
 });
 
 

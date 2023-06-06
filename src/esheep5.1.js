@@ -136,7 +136,7 @@ export class Sheep {
     }
 
     async initImg(dict) {
-        this.img.toggleAttribute('hidden');
+        this.img.hidden = true;
         this.img.src = `data:image/png;base64,${dict.get('image').get('png')}`;
         await new Promise(resolve => this.img.addEventListener('load', resolve, {once: true}));
         const size = {
@@ -144,7 +144,6 @@ export class Sheep {
             h: this.img.height / dict.get('image').get('tilesy'),
         };
         this.img.style = `width: ${size.w}px; height: ${size.h}px; image-rendering: crisp-edges; object-fit: none`;
-        this.img.toggleAttribute('hidden');
         return size;
     }
 
@@ -190,6 +189,7 @@ export class Sheep {
                 this.timeoutID = setTimeout(() => draw(stepsIter, delay+delayDelta), delay);
             }
         };
+        this.img.hidden = false;
         draw();
     }
 
