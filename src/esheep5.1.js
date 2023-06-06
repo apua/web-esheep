@@ -121,12 +121,13 @@ export async function fromUri(xmlPath) {
             .replace(/screenW|areaW/g, window.innerWidth)
             .replace(/screenH|areaH/g, window.innerHeight)
             .replace(/randS/g, this.get('seed'))
-            .replace(/imageW/g, this.get('img').width)
-            .replace(/imageH/g, this.get('img').height)
+            .replace(/imageW/g, Number.parseInt(this.get('img').style.width))
+            .replace(/imageH/g, Number.parseInt(this.get('img').style.height))
             //.replace(/imageX/g, sheep.imageX)
             //.replace(/imageY/g, sheep.imageY)
             .replace(/Convert\((.*),System.Int32\)/, '$1')
             ;
+        console.debug(code);
 
         try {
             return eval(code);
