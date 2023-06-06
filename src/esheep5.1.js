@@ -187,9 +187,14 @@ export class Sheep {
                 draw();
             } else {
                 this.img.style.objectPosition = pos(step.value);
-                setTimeout(() => draw(stepsIter, delay+delayDelta), delay);
+                this.timeoutID = setTimeout(() => draw(stepsIter, delay+delayDelta), delay);
             }
         };
         draw();
+    }
+
+    stopAnimation() {
+        if (this.timeoutID !== undefined)
+            clearTimeout(this.timeoutID);
     }
 }
