@@ -80,65 +80,6 @@ function parseXml(xml) {
 }
 
 
-export async function fromUri(xmlPath) {
-    const resp = await fetch(xmlPath);
-    const dict = parseXml(await resp.text());
-
-    {  // setImg
-        console.assert(!dict.has('img'));
-        const img = document.createElement('img');
-        img.src = `data:image/png;base64,${dict.get('image').get('png')}`;
-        await new Promise(resolve => img.addEventListener('load', resolve, {once: true}));
-        const width = img.width / dict.get('image').get('tilesx');
-        const height = img.height / dict.get('image').get('tilesy');
-        img.style = `width: ${width}px; height: ${height}px; image-rendering: crisp-edges; object-fit: none`;
-        dict.set('img', img);
-    }
-
-    dict.getSpecById = function (id) {
-        const animation = this.get('animations').find(elm => elm.get('id') == id);
-        return {
-            id: id,
-            frames: animation.get('sequence').get('frame').map(dict.evaluate),
-            repeat: dict.evaluate(animation.get('sequence').get('repeat')) | 0,
-            repeatfrom: dict.evaluate(animation.get('sequence').get('repeatfrom')),
-            delay: {
-                start: dict.evaluate(animation.get('start').get('interval')),
-                end: dict.evaluate(animation.get('end').get('interval')),
-            },
-        };
-    }
-
-    dict.set('seed', Math.random() * 100);
-    dict.evaluate = function (str) {
-        const value = Number(str);
-        if (!Number.isNaN(value))
-            return value;
-
-        const code = str
-            .replace(/random/g, Math.random()*100)
-            .replace(/screenW|areaW/g, window.innerWidth)
-            .replace(/screenH|areaH/g, window.innerHeight)
-            .replace(/randS/g, this.get('seed'))
-            .replace(/imageW/g, Number.parseInt(this.get('img').style.width))
-            .replace(/imageH/g, Number.parseInt(this.get('img').style.height))
-            //.replace(/imageX/g, sheep.imageX)
-            //.replace(/imageY/g, sheep.imageY)
-            .replace(/Convert\((.*),System.Int32\)/, '$1')
-            ;
-
-        try {
-            return eval(code);
-        } catch (error) {
-            console.error(error, `str: ${str}, code: ${code}`);
-            return 0;
-        }
-    }
-
-    return dict;
-}
-
-
 export async function listPetSources() {
     return new Map([['esheep64', './animation.xml']]);
 
@@ -147,35 +88,6 @@ export async function listPetSources() {
     const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
     const json = await resp.json();
     return new Map(json.pets.map(obj => [obj.folder, petSrc(obj.folder)]));
-}
-
-
-export function startAnimation(elm) {
-    const spec = elm.spec, dict = elm.dict;
-    const img = dict.get('img'), w = Number.parseInt(img.style.width), h = Number.parseInt(img.style.height);
-    const rowLen = Number(dict.get('image').get('tilesx'));
-    const delayDelta = (spec.delay.end - spec.delay.start)
-        / spec.frames.length + (spec.frames.length - spec.repeatfrom) * spec.repeat;
-    const pos = idx => {
-        const x = idx % rowLen;
-        const y = idx / rowLen | 0;
-        return `-${x * w}px -${y * h}px`;
-    };
-    function* steps() {
-        yield* spec.frames;
-        for (const _ of Array(spec.repeat))
-            yield* spec.frames.slice(spec.repeatfrom);
-    }
-    const draw = (stepsIter=steps(), delay=spec.delay.start) => {
-        const step = stepsIter.next();
-        if (step.done) {
-            draw();
-        } else {
-            elm.style.objectPosition = pos(step.value);
-            setTimeout(() => draw(stepsIter, delay+delayDelta), delay);
-        }
-    };
-    draw();
 }
 
 
@@ -194,10 +106,10 @@ export class Sheep {
         const cls = this.constructor;
 
         if (xmlPath in cls.cache) {
-            this.conifg = Object.create(cls.cache[xmlPath]);
+            this.config = Object.create(cls.cache[xmlPath]);
             this.config.seed = Math.random() * 100;
             await this.initImg(this.config.dict);
-            return;
+            return this;
         }
 
         const dict = await fetch(xmlPath).then(resp => resp.text()).then(parseXml);
@@ -206,8 +118,10 @@ export class Sheep {
             xmlPath: xmlPath,
             dict: dict,
             size: size,
+            rowlength: Number(dict.get('image').get('tilesx')),
             seed: Math.random() * 100,
             animations: Object.fromEntries(dict.get('animations').map(a => [a.get('id'), {
+                name: a.get('name'),
                 frames: a.get('sequence').get('frame').map(Number),
                 repeat: this.cleanEval(a.get('sequence').get('repeat')),
                 repeatfrom: this.cleanEval(a.get('sequence').get('repeatfrom')),
@@ -218,9 +132,11 @@ export class Sheep {
             }])),
         };
         cls.cache[xmlPath] = this.config;
+        return this;
     }
 
     async initImg(dict) {
+        this.img.toggleAttribute('hidden');
         this.img.src = `data:image/png;base64,${dict.get('image').get('png')}`;
         await new Promise(resolve => this.img.addEventListener('load', resolve, {once: true}));
         const size = {
@@ -228,6 +144,7 @@ export class Sheep {
             h: this.img.height / dict.get('image').get('tilesy'),
         };
         this.img.style = `width: ${size.w}px; height: ${size.h}px; image-rendering: crisp-edges; object-fit: none`;
+        this.img.toggleAttribute('hidden');
         return size;
     }
 
@@ -244,5 +161,35 @@ export class Sheep {
             .replace(/Convert\((.*),System.Int32\)/, '$1')
             ;
         return code;
+    }
+
+    startAnimation(id) {
+        const size = this.config.size;
+        const rowLength = this.config.rowlength;
+        const a = this.config.animations[id];
+        const repeat = eval(a.repeat) | 0, repeatfrom = eval(a.repeatfrom);
+        const delayDelta = (a.delay.end - a.delay.start) / a.frames.length
+          + (a.frames.length - repeatfrom) * repeat;
+
+        const pos = idx => {
+            const x = idx % rowLength;
+            const y = idx / rowLength | 0;
+            return `-${x * size.w}px -${y * size.h}px`;
+        };
+        function* steps() {
+            yield* a.frames;
+            for (const _ of Array(repeat))
+                yield* a.frames.slice(repeatfrom);
+        }
+        const draw = (stepsIter=steps(), delay=a.delay.start) => {
+            const step = stepsIter.next();
+            if (step.done) {
+                draw();
+            } else {
+                this.img.style.objectPosition = pos(step.value);
+                setTimeout(() => draw(stepsIter, delay+delayDelta), delay);
+            }
+        };
+        draw();
     }
 }
