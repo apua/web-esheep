@@ -1,4 +1,4 @@
-import { fromUri, listPetSources, startAnimation } from "./esheep5.1.js";
+import { fromUri, listPetSources, startAnimation, Sheep } from "./esheep5.1.js";
 
 
 async function setPetSprite(dict) {
@@ -48,3 +48,7 @@ listPetSources().then(srcs => {
     [...petSelector.children].find(elm => elm.label == 'esheep64').selected = true;
     petSelector.dispatchEvent(new Event('input'));
 });
+
+
+document.body.append(new Sheep().img);
+Sheep0.sheep.useXml('./animation.xml');

@@ -115,7 +115,6 @@ export async function fromUri(xmlPath) {
         if (!Number.isNaN(value))
             return value;
 
-        console.debug(str);
         const code = str
             .replace(/random/g, Math.random()*100)
             .replace(/screenW|areaW/g, window.innerWidth)
@@ -127,7 +126,6 @@ export async function fromUri(xmlPath) {
             //.replace(/imageY/g, sheep.imageY)
             .replace(/Convert\((.*),System.Int32\)/, '$1')
             ;
-        console.debug(code);
 
         try {
             return eval(code);
@@ -178,4 +176,60 @@ export function startAnimation(elm) {
         }
     };
     draw();
+}
+
+
+export class Sheep {
+    static pk = 0;
+
+    constructor() {  // __init__
+        const cls = this.constructor;
+        this.img = document.createElement('img');
+        this.img.id = `${cls.name}${cls.pk++}`;
+        this.img.sheep = this;
+    }
+
+    async useXml(xmlPath) {
+        const resp = await fetch(xmlPath);
+        const dict = parseXml(await resp.text());
+
+        // init <img>
+        this.img.src = `data:image/png;base64,${dict.get('image').get('png')}`;
+        await new Promise(resolve => this.img.addEventListener('load', resolve, {once: true}));
+        const size = {
+            w: this.img.width / dict.get('image').get('tilesx'),
+            h: this.img.height / dict.get('image').get('tilesy'),
+        };
+        this.img.style = `width: ${size.w}px; height: ${size.h}px; image-rendering: crisp-edges; object-fit: none`;
+
+        this.config = {
+            dict: dict,
+            size: size,
+            seed: Math.random() * 100,
+            animations: Object.fromEntries(dict.get('animations').map(a => [a.get('id'), {
+                frames: a.get('sequence').get('frame').map(Number),
+                repeat: this.cleanEval(a.get('sequence').get('repeat')),
+                repeatfrom: this.cleanEval(a.get('sequence').get('repeatfrom')),
+                delay: {
+                    start: Number(a.get('start').get('interval')),
+                    end: Number(a.get('end').get('interval')),
+                },
+            }])),
+        };
+    }
+
+    cleanEval(str) {
+        const code = str
+            .replace(/random/g, 'Math.random()*100')
+            .replace(/screenW|areaW/g, 'window.innerWidth')
+            .replace(/screenH|areaH/g, 'window.innerHeight')
+            .replace(/randS/g, 'this.config.seed')
+            .replace(/imageW/g, 'this.config.size.w')
+            .replace(/imageH/g, 'this.config.size.h')
+            //.replace(/imageX/g, sheep.imageX)
+            //.replace(/imageY/g, sheep.imageY)
+            .replace(/Convert\((.*),System.Int32\)/, '$1')
+            ;
+        return code;
+    }
 }
