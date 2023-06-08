@@ -30,19 +30,17 @@ petSelector.addEventListener('input', async event => {
 });
 
 
-listPetSources().then(srcs => {
-    petSelector.parentElement.append(new Sheep().img);
+const srcs = await listPetSources();
+petSelector.parentElement.append(new Sheep().img);
+petSelector.append(...[...srcs.entries()].map(
+    ([name, src]) => {
+        const opt = document.createElement('option');
+        opt.label = name;
+        opt.value = src;
+        return opt;
+    }
+));
 
-    petSelector.append(...[...srcs.entries()].map(
-        ([name, src]) => {
-            const opt = document.createElement('option');
-            opt.label = name;
-            opt.value = src;
-            return opt;
-        }
-    ));
-
-    // Select :pet:`esheep64`
-    [...petSelector.children].find(elm => elm.label == 'esheep64').selected = true;
-    petSelector.dispatchEvent(new Event('input'));
-});
+// Select :pet:`esheep64`
+[...petSelector.children].find(elm => elm.label == 'esheep64').selected = true;
+petSelector.dispatchEvent(new Event('input'));
