@@ -180,17 +180,32 @@ export class Sheep {
             for (const _ of Array(repeat))
                 yield* a.frames.slice(repeatfrom);
         }
-        const draw = (stepsIter=steps(), delay=a.delay.start) => {
-            const step = stepsIter.next();
-            if (step.done) {
-                draw();
-            } else {
-                this.img.style.objectPosition = pos(step.value);
-                this.timeoutID = setTimeout(() => draw(stepsIter, delay+delayDelta), delay);
+        const next = () => {
+            return {
+                stepsIter: steps(),
+                delay: a.delay.start,
+                delayDelta: delayDelta,
             }
         };
+        const draw = args => {
+            let step = args.stepsIter.next();
+            if (step.done) {
+                args = next();
+                step = args.stepsIter.next();
+            }
+            this.img.style.objectPosition = pos(step.value);
+            args.delay += delayDelta;
+            return args;
+        }
+        const delay = args => args.delay;
+
+        this.loop(next(), draw, delay);
         this.img.hidden = false;
-        draw();
+    }
+
+    loop(args, draw, delay) {
+        args = draw(args);
+        this.timeoutID = setTimeout(() => this.loop(args, draw, delay), delay(args));
     }
 
     stopAnimation() {
