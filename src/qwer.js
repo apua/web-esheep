@@ -21,6 +21,8 @@ petSelector.append(...options);
 
 // Register listener
 petSelector.addEventListener('input', async event => {
+    event.target.toggleAttribute('disabled');
+
     const xmlPath = event.target.value
     const sheep = petDemo.sheep;
 
@@ -46,6 +48,8 @@ petSelector.addEventListener('input', async event => {
     [...animationList.querySelectorAll('img')].forEach(elm =>
         elm.sheep.useXml(xmlPath).then(self => self.startAnimation(elm.dataset.id))
     );
+
+    event.target.toggleAttribute('disabled');
 });
 
 
