@@ -1,9 +1,28 @@
 import { listPetSources, Sheep } from "./esheep5.1.js";
 
 
+// Init petDemo
+const demo = new Sheep().img;
+demo.dataset.id = demo.id;
+demo.id = petDemo.id;
+petDemo.replaceWith(demo);
+
+
+// Fetch and set options
+const srcs = await listPetSources();
+const options = [...srcs.entries()].map(([name, src]) => {
+    const opt = document.createElement('option');
+    opt.label = name;
+    opt.value = src;
+    return opt;
+});
+petSelector.append(...options);
+
+
+// Register listener
 petSelector.addEventListener('input', async event => {
     const xmlPath = event.target.value
-    const sheep = petSelector.nextElementSibling.sheep;
+    const sheep = petDemo.sheep;
 
     sheep.stopAnimation();
     [...animationList.querySelectorAll('img')].forEach(elm => elm.sheep.stopAnimation());
@@ -30,17 +49,7 @@ petSelector.addEventListener('input', async event => {
 });
 
 
-const srcs = await listPetSources();
-petSelector.parentElement.append(new Sheep().img);
-petSelector.append(...[...srcs.entries()].map(
-    ([name, src]) => {
-        const opt = document.createElement('option');
-        opt.label = name;
-        opt.value = src;
-        return opt;
-    }
-));
-
-// Select :pet:`esheep64`
-[...petSelector.children].find(elm => elm.label == 'esheep64').selected = true;
+// Select a option
+const esheep64 = [...petSelector.children].find(elm => elm.label == 'esheep64');
+esheep64.selected = true;
 petSelector.dispatchEvent(new Event('input'));
