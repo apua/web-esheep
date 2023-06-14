@@ -19,3 +19,12 @@ const lock = new class {
 export function withLock(callback) {
     return lock.acquire().then(() => callback()).finally(() => lock.release());
 }
+
+
+export function asycnWithDisabled(callback) {
+    return async function (event) {
+        event.target.toggleAttribute('disabled');
+        return callback(event)
+            .finally(() => event.target.toggleAttribute('disabled'));
+    }
+}

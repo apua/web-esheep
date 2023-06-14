@@ -1,4 +1,5 @@
 import { listPetSources, Sheep } from "./esheep5.1.js";
+import { asycnWithDisabled } from "./utils.js";
 
 
 // Init petDemo
@@ -20,9 +21,7 @@ petSelector.append(...options);
 
 
 // Register listener
-petSelector.addEventListener('input', async event => {
-    event.target.toggleAttribute('disabled');
-
+petSelector.addEventListener('input', asycnWithDisabled(async event => {
     const xmlPath = event.target.value
     const sheep = petDemo.sheep;
 
@@ -48,9 +47,7 @@ petSelector.addEventListener('input', async event => {
     [...animationList.querySelectorAll('img')].forEach(elm =>
         elm.sheep.useXml(xmlPath).then(self => self.startAnimation(elm.dataset.id))
     );
-
-    event.target.toggleAttribute('disabled');
-});
+}));
 
 
 // Select a option
