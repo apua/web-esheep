@@ -1,4 +1,4 @@
-function parseXml(xml) {
+const parseXml = xml => {
     const dom = (new DOMParser()).parseFromString(xml, 'text/xml');
 
     // Collect data from dom to dict, focus on web used only
@@ -77,18 +77,16 @@ function parseXml(xml) {
     ]));
 
     return dict;
-}
+};
 
 
-export async function listPetSources() {
-    return new Map([['esheep64', './animation.xml']]);
-
+export const listPetSources = async () => {
     const ref = 'https://adrianotiger.github.io/desktopPet/Pets/pets.json';
     const petSrc = folder => `https://adrianotiger.github.io/desktopPet/Pets/${folder}/animations.xml`;
     const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
     const json = await resp.json();
     return new Map(json.pets.map(obj => [obj.folder, petSrc(obj.folder)]));
-}
+};
 
 
 export class Sheep {

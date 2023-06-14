@@ -21,10 +21,11 @@ export function withLock(callback) {
 }
 
 
-export function asycnWithDisabled(callback) {
-    return async function (event) {
+export const asyncWithDisabled = callback => async event => {
+    event.target.toggleAttribute('disabled');
+    try {
+        return await callback(event);
+    } finally {
         event.target.toggleAttribute('disabled');
-        return callback(event)
-            .finally(() => event.target.toggleAttribute('disabled'));
     }
-}
+};
