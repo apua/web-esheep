@@ -218,6 +218,9 @@ customElements.define('e-sheep', class Pet extends HTMLElement {
         this.pet = new Sheep();
         this.append(this.pet.img);
     }
+    get src() {
+        return this.pet.img.src;
+    }
     get animations() {
         return Object.entries(this.pet.config.animations);
     }

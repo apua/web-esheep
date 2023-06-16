@@ -14,6 +14,7 @@ petSelector.append(...options);
 petSelector.addEventListener('input', withDisabled(async event => {
     const xmlPath = event.target.value;
     await petDemo.update(xmlPath);
+    petSprite.src = petDemo.src;
     await animationList.update(xmlPath, petDemo.animations);
 }));
 
