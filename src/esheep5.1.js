@@ -210,3 +210,24 @@ export class Sheep {
             clearTimeout(this.timeoutID);
     }
 }
+
+
+customElements.define('e-sheep', class Pet extends HTMLElement {
+    constructor() {
+        super();
+        this.pet = new Sheep();
+        this.append(this.pet.img);
+    }
+    get animations() {
+        return this.pet.config.animations;
+    }
+    useXml(xmlPath) {
+        return this.pet.useXml(xmlPath);
+    }
+    startAnimation(id) {
+        return this.pet.startAnimation(id);
+    }
+    stopAnimation() {
+        return this.pet.stopAnimation();
+    }
+});

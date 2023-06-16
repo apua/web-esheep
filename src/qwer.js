@@ -20,30 +20,25 @@ petSelector.addEventListener('input', withDisabled(async event => {
 
 // Define how `petDemo` update
 petDemo.update = async function(xmlPath) {
-    const pet = petDemo.pet ??= new Sheep(petDemo);
-    pet.stopAnimation();
-    await pet.useXml(xmlPath);
-    pet.startAnimation(1);
-    return Object.entries(pet.config.animations);
+    petDemo.stopAnimation();
+    await petDemo.useXml(xmlPath);
+    petDemo.startAnimation(1);
+    return Object.entries(petDemo.animations);
 };
 
 
 // Define how `animationList` update
 animationList.update = async function(xmlPath, animations) {
     const detail = a => `${a.frames} ${a.repeat} ${a.repeatfrom}`;
-    const children = animations.map(([id, a]) => {
+    [...animationList.querySelectorAll('e-sheep')].forEach(esheep => esheep.stopAnimation());
+    animationList.replaceChildren(...animations.map(([id, a]) => {
         const temp = document.createElement('template');
-        temp.innerHTML = `<tr><td>${id} ${a.name}</td><td><img></td><td>${detail(a)}</td></tr>`;
-        const img = temp.content.querySelector('img');
-        img.pet = new Sheep(img);
-        img.dataset.id = id;
+        temp.innerHTML = `<tr><td>${id} ${a.name}</td><td><e-sheep data-id="${id}"></e-sheep></td><td>${detail(a)}</td></tr>`;
         return temp.content;
-    });
-    [...animationList.querySelectorAll('img')].forEach(img => img.pet.stopAnimation());
-    animationList.replaceChildren(...children);
-    const imgs = [...animationList.querySelectorAll('img')];
-    await Promise.all(imgs.map(img => img.pet.useXml(xmlPath)));
-    imgs.forEach(img => img.pet.startAnimation(img.dataset.id));
+    }));
+    const esheeps = [...animationList.querySelectorAll('e-sheep')];
+    await Promise.all(esheeps.map(esheep => esheep.useXml(xmlPath)));
+    esheeps.forEach(esheep => esheep.startAnimation(esheep.dataset.id));
 };
 
 
