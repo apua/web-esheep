@@ -90,14 +90,13 @@ export const listPetSources = async () => {
 
 
 export class Sheep {
-    static pk = 0;
+    static count = 0;
     static cache = {};
 
-    constructor() {  // __init__
+    constructor(img) {  // __init__
         const cls = this.constructor;
-        this.img = document.createElement('img');
-        this.img.id = `${cls.name}${cls.pk++}`;
-        this.img.sheep = this;
+        this.img = img === undefined ? document.createElement('img') : img;
+        this.pk = cls.count++;
     }
 
     async useXml(xmlPath) {

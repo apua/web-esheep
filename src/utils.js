@@ -1,14 +1,14 @@
 const sync = {
     jobId: null,
     queue: [],
-    trigger: () => {
-        if (sync.jobId === null && sync.queue.length)
-            sync.jobId = setTimeout(async () => {
-                const {callback, args, elm} = sync.queue.shift();
+    trigger: function() {
+        if (this.jobId === null && this.queue.length)
+            this.jobId = setTimeout(async() => {
+                const {callback, args, elm} = this.queue.shift();
                 const result = await callback(...args);
                 elm.dispatchEvent(new CustomEvent('result', {detail: result}));
-                sync.jobId = null;
-                sync.trigger();
+                this.jobId = null;
+                this.trigger();
             });
     },
 };
@@ -24,12 +24,12 @@ export const withSync = callback => (...args) => {
 
 const lock = {
     isLocked: false,
-    acquire: async () => {
-        while (lock.isLocked) await new Promise(setTimeout);
-        lock.isLocked = true;
+    acquire: async function() {
+        while (this.isLocked) await new Promise(setTimeout);
+        this.isLocked = true;
     },
-    release: () => {
-        lock.isLocked = false;
+    release: function() {
+        this.isLocked = false;
     },
 };
 
@@ -37,17 +37,17 @@ const lock = {
 export const withLock = callback => async (...args) => {
     await lock.acquire();
     try {
-        return callback(...args);
+        return await callback(...args);
     } finally {
         lock.release();
     }
 };
 
 
-export const withDisabled = callback => event => {
+export const withDisabled = callback => async event => {
     event.target.toggleAttribute('disabled');
     try {
-        return callback(event);
+        return await callback(event);
     } finally {
         event.target.toggleAttribute('disabled');
     }
