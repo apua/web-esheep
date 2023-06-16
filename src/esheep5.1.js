@@ -219,13 +219,13 @@ customElements.define('e-sheep', class Pet extends HTMLElement {
         this.append(this.pet.img);
     }
     get animations() {
-        return this.pet.config.animations;
+        return Object.entries(this.pet.config.animations);
     }
     useXml(xmlPath) {
         return this.pet.useXml(xmlPath);
     }
-    startAnimation(id) {
-        return this.pet.startAnimation(id);
+    startAnimation() {
+        return this.pet.startAnimation(this.dataset.id);
     }
     stopAnimation() {
         return this.pet.stopAnimation();
