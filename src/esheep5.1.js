@@ -89,6 +89,34 @@ export const listPetSources = async () => {
 };
 
 
+const getFrames = ({baseframes, repeat, repeatfrom}) => (function*_(){
+    yield* baseframes;
+    for (const _ of Array(repeat))
+        yield* baseframes.slice(repeatfrom);
+})();
+
+
+const getDelaySequence = ({delay: {start, end}, framesLength}) => (function*_(){
+    const delta = (end - start) / framesLength;
+    let delay = start;
+    for (const _ of Array(framesLength))
+        yield delay += delta;
+})();
+
+
+const loopSteps = animation => (function*_(){
+    while (true) {
+        const delaySeq = getDelaySequence(animation);
+        for (const index of getFrames(animation)) {
+            yield {
+                index: index,
+                delay: delaySeq.next().value,
+            };
+        }
+    }
+})();
+
+
 export class Sheep {
     static count = 0;
     static cache = {};
@@ -115,7 +143,7 @@ export class Sheep {
             xmlPath: xmlPath,
             dict: dict,
             size: size,
-            rowlength: Number(dict.get('image').get('tilesx')),
+            rowLength: Number(dict.get('image').get('tilesx')),
             seed: Math.random() * 100,
             animations: Object.fromEntries(dict.get('animations').map(a => [a.get('id'), {
                 name: a.get('name'),
@@ -159,50 +187,39 @@ export class Sheep {
         return code;
     }
 
-    startAnimation(id) {
-        const size = this.config.size;
-        const rowLength = this.config.rowlength;
-        const a = this.config.animations[id];
-        const repeat = eval(a.repeat) | 0, repeatfrom = eval(a.repeatfrom);
-        const delayDelta = (a.delay.end - a.delay.start) / a.frames.length
-          + (a.frames.length - repeatfrom) * repeat;
-
-        const pos = idx => {
-            const x = idx % rowLength;
-            const y = idx / rowLength | 0;
-            return `-${x * size.w}px -${y * size.h}px`;
+    getAnimation(id) {
+        const animation = this.config.animations[id];
+        const _baseframes = animation.frames;
+        const _repeat = eval(animation.repeat) | 0;
+        const _repeatfrom = eval(animation.repeatfrom);
+        const _framesLength = _baseframes.length + (_baseframes.length - _repeatfrom) * _repeat;
+        return {
+            repeat: _repeat, repeatfrom: _repeatfrom, baseframes: _baseframes,
+            delay: animation.delay, framesLength: _framesLength,
         };
-        function* steps() {
-            yield* a.frames;
-            for (const _ of Array(repeat))
-                yield* a.frames.slice(repeatfrom);
-        }
-        const next = () => {
-            return {
-                stepsIter: steps(),
-                delay: a.delay.start,
-                delayDelta: delayDelta,
-            }
-        };
-        const draw = args => {
-            let step = args.stepsIter.next();
-            if (step.done) {
-                args = next();
-                step = args.stepsIter.next();
-            }
-            this.img.style.objectPosition = pos(step.value);
-            args.delay += delayDelta;
-            return args;
-        }
-        const delay = args => args.delay;
-
-        this.loop(next(), draw, delay);
-        this.img.hidden = false;
     }
 
-    loop(args, draw, delay) {
-        args = draw(args);
-        this.timeoutID = setTimeout(() => this.loop(args, draw, delay), delay(args));
+    draw(idx) {
+        const {size, rowLength} = this.config;
+        const x = idx % rowLength * size.w;
+        const y = (idx / rowLength | 0) * size.h;
+        this.img.style.objectPosition = `-${x}px -${y}px`;
+    }
+
+    loop() {
+        const {value, done} = this.steps.next();
+        if (done) return;
+
+        const {index, delay} = value;
+        this.draw(index);
+        this.timeoutID = setTimeout(() => this.loop(), delay);
+    }
+
+    startAnimation(id) {  // loop animation by ID
+        this.steps = loopSteps(this.getAnimation(id));
+        this.loop();
+        this.img.hidden = false;
+
     }
 
     stopAnimation() {
