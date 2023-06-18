@@ -1,3 +1,12 @@
+export const listPetSources = async () => {
+    const ref = 'https://adrianotiger.github.io/desktopPet/Pets/pets.json';
+    const petSrc = folder => `https://adrianotiger.github.io/desktopPet/Pets/${folder}/animations.xml`;
+    const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
+    const json = await resp.json();
+    return new Map(json.pets.map(obj => [obj.folder, petSrc(obj.folder)]));
+};
+
+
 const parseXml = xml => {
     const dom = (new DOMParser()).parseFromString(xml, 'text/xml');
 
@@ -77,15 +86,6 @@ const parseXml = xml => {
     ]));
 
     return dict;
-};
-
-
-export const listPetSources = async () => {
-    const ref = 'https://adrianotiger.github.io/desktopPet/Pets/pets.json';
-    const petSrc = folder => `https://adrianotiger.github.io/desktopPet/Pets/${folder}/animations.xml`;
-    const resp = await fetch(ref, {credentials: 'same-origin', cache: "force-cache"});
-    const json = await resp.json();
-    return new Map(json.pets.map(obj => [obj.folder, petSrc(obj.folder)]));
 };
 
 

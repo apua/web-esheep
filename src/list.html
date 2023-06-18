@@ -17,6 +17,19 @@
 <script type="module" src="./list.js"></script>
 <script type="module">import eSheep from './esheep5.js'; (new eSheep()).start();</script>
 
+<ol>
+  <li>Fetch pet list and set selector options to the XML Path of each pet.</li>
+  <li>When select a pet, draw <em>demo</em> first, then draw <em>animation list</em>.</li>
+  <li>To draw an element, stop its animation first if any, then setup it and start animation.</li>
+  <li>Animation is done by recursive <code>setTimeout</code> currently, instead of Animations API.</li>
+  <li>The pet object is encapsulated into a custome HTML element.</li>
+  <li>Each pet has unique <code>data-id</code>.</li>
+  <li>The backend should fetch once only by cache for the same XML path.</li>
+  <li>The backend might compute once only by cache for the same key.</li>
+  <li>If specify an animation ID, it evaluates frames (including "frame delay") of the animation instancely.</li>
+  <li>Here each animation is going to loop infinitely.</li>
+</ol>
+
 <fieldset><legend>Select a pet</legend>
 <select id="petSelector" style='vertical-align: top;'></select>
 <e-sheep id="petDemo"></e-sheep>
